@@ -1,6 +1,9 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "daily-hype-battle",
+  "permissions": {
+    "media": true
+  },
   "post": {
     "dir": "dist/client",
     "entrypoints": {

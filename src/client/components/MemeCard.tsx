@@ -1,3 +1,5 @@
+import type { MemeImageAsset } from '../../shared/types';
+
 type MemeCardProps = {
   emoji: string;
   name: string;
@@ -5,6 +7,7 @@ type MemeCardProps = {
   tagline?: string | undefined;
   pitch: string;
   imageUrl?: string | undefined;
+  imageAsset?: MemeImageAsset | undefined;
   frameTheme?: string | undefined;
   creatorUsername: string;
   supportCount?: number | undefined;
@@ -20,6 +23,7 @@ export const MemeCard = ({
   tagline,
   pitch,
   imageUrl,
+  imageAsset,
   frameTheme = 'Neon',
   creatorUsername,
   supportCount,
@@ -27,6 +31,8 @@ export const MemeCard = ({
   imageFailed,
   isUserNom,
 }: MemeCardProps) => {
+  // Prefer Reddit-hosted mediaUrl, fallback to legacy imageUrl
+  const resolvedImageUrl = imageAsset?.mediaUrl || imageUrl;
   let themeClass = 'border-2 border-hype-purple shadow-[0_0_15px_rgba(168,85,247,0.35)] bg-gradient-to-br from-black/60 to-hype-purple/10';
   let badgeColor = 'bg-hype-purple/20 border-hype-purple/40 text-hype-purple';
 
@@ -66,9 +72,9 @@ export const MemeCard = ({
       </div>
 
       <div className="flex items-center gap-3">
-        {imageUrl && !imageFailed ? (
+        {resolvedImageUrl && !imageFailed ? (
           <img
-            src={imageUrl}
+            src={resolvedImageUrl}
             alt={name}
             onError={onImageError}
             className="w-12 h-12 rounded-lg object-cover border border-white/10 flex-shrink-0"

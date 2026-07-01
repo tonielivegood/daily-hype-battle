@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { context, redis, reddit } from '@devvit/web/server';
+import { context, media, redis, reddit } from '@devvit/web/server';
 import type {
   DecrementResponse,
   IncrementResponse,
@@ -11,6 +11,7 @@ import type {
   HypeErrorResponse,
   LockHypeRequest,
   LockHypeResponse,
+  MemeImageAsset,
   SettledCandidateResult,
   SettledResults,
   LeaderboardEntry,
@@ -20,6 +21,8 @@ import type {
   GetLaunchpadResponse,
   CuratedLaunchpadPreview,
   CurateLaunchpadResponse,
+  UploadMemeImageRequest,
+  UploadMemeImageResponse,
 } from '../../shared/types';
 
 type ErrorResponse = {
@@ -772,6 +775,152 @@ api.post('/launchpad/curate', async (c) => {
 });
 
 /**
+ * POST /api/upload-meme-image
+ * Upload a meme image to Reddit's CDN via Devvit media.upload().
+ * Accepts data URLs (from local file upload) or https remote URLs.
+ * Returns { mediaId, mediaUrl } on success.
+ */
+api.post('/upload-meme-image', async (c) => {
+  try {
+    const body: UploadMemeImageRequest = await c.req.json();
+    const { url, type } = body;
+
+    // Validate type
+    if (type !== 'image' && type !== 'gif') {
+      return c.json<HypeErrorResponse>(
+        { status: 'error', message: 'Invalid media type. Must be "image" or "gif".' },
+        400
+      );
+    }
+
+    // Validate URL format
+    if (!url || typeof url !== 'string') {
+      return c.json<HypeErrorResponse>(
+        { status: 'error', message: 'A valid URL is required.' },
+        400
+      );
+    }
+
+    const isDataUrl = url.startsWith('data:');
+    const isHttpsUrl = url.startsWith('https://');
+
+    if (!isDataUrl && !isHttpsUrl) {
+      return c.json<HypeErrorResponse>(
+        { status: 'error', message: 'Only data URLs (from file upload) or https URLs are accepted.' },
+        400
+      );
+    }
+
+    // Validate data URL MIME type
+    if (isDataUrl) {
+      const allowedMimes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+      const mimeMatch = url.match(/^data:(image\/[a-z+]+);/);
+      const detectedMime = mimeMatch ? mimeMatch[1] : null;
+
+      if (!detectedMime || !allowedMimes.includes(detectedMime)) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'Only PNG, JPEG, WEBP, and GIF images are accepted.' },
+          400
+        );
+      }
+
+      // Reject SVG disguised as data URL
+      if (detectedMime.includes('svg')) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'SVG images are not supported.' },
+          400
+        );
+      }
+
+      // Size check: base64 portion only. 1.5MB file ≈ 2MB base64.
+      // Enforce ~2MB base64 limit to stay safely under Devvit's 4MB payload limit.
+      const base64Portion = url.substring(url.indexOf(',') + 1);
+      const estimatedBytes = base64Portion.length * 0.75;
+      const MAX_BYTES = 2 * 1024 * 1024; // 2MB decoded
+      if (estimatedBytes > MAX_BYTES) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'Image is too large. Please use an image under 1.5 MB.' },
+          400
+        );
+      }
+    }
+
+    // Reject SVG in remote URLs
+    if (isHttpsUrl) {
+      const lowerUrl = url.toLowerCase();
+      if (lowerUrl.endsWith('.svg') || lowerUrl.includes('.svg?')) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'SVG images are not supported.' },
+          400
+        );
+      }
+
+      // SSRF validation: block local, private, and reserved addresses
+      try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname.toLowerCase();
+
+        // 1. Loopback, localhost, loopback IPv6, or raw loopback subnet names
+        if (
+          hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          hostname === '0.0.0.0' ||
+          hostname === '[::1]' ||
+          hostname.startsWith('[') ||
+          hostname.endsWith(']')
+        ) {
+          return c.json<HypeErrorResponse>(
+            { status: 'error', message: 'Access to loopback or local addresses is prohibited.' },
+            400
+          );
+        }
+
+        const ipPattern = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/;
+        const match = hostname.match(ipPattern);
+        if (match && match[1] && match[2]) {
+          const octet1 = parseInt(match[1], 10);
+          const octet2 = parseInt(match[2], 10);
+
+          if (
+            octet1 === 127 || // Loopback
+            octet1 === 10 ||  // Private network (10.0.0.0/8)
+            (octet1 === 172 && octet2 >= 16 && octet2 <= 31) || // Private network (172.16.0.0/12)
+            (octet1 === 192 && octet2 === 168) || // Private network (192.168.0.0/16)
+            (octet1 === 169 && octet2 === 254) || // Link-local address (169.254.0.0/16)
+            octet1 >= 224     // Multicast/Reserved/Special class
+          ) {
+            return c.json<HypeErrorResponse>(
+              { status: 'error', message: 'Access to private or reserved IP ranges is prohibited.' },
+              400
+            );
+          }
+        }
+      } catch (err) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'Invalid remote URL format.' },
+          400
+        );
+      }
+    }
+
+    // Upload to Reddit via Devvit media API
+    const uploaded = await media.upload({ url, type });
+
+    return c.json<UploadMemeImageResponse>({
+      mediaId: uploaded.mediaId,
+      mediaUrl: uploaded.mediaUrl,
+    });
+  } catch (error) {
+    console.error('POST /api/upload-meme-image error:', error);
+    const message = error instanceof Error ? error.message : 'Upload failed';
+    return c.json<HypeErrorResponse>(
+      { status: 'error', message: `Image upload failed: ${message}` },
+      500
+    );
+  }
+});
+
+/**
  * POST /api/launchpad/submit
  * Nominate a new meme idea for a future Hype Battle.
  */
@@ -795,7 +944,7 @@ api.post('/launchpad/submit', async (c) => {
 
     // 1. Get body and destructure including isEdit
     const body: SubmitLaunchpadRequest = await c.req.json();
-    const { emoji, name, tag, pitch, why, imageUrl, frameTheme, tagline, isEdit } = body;
+    const { emoji, name, tag, pitch, why, imageUrl, imageAsset, frameTheme, tagline, isEdit } = body;
 
     // 2. Enforce one submission per user per post unless editing
     const existingSubId = await redis.get(`launchpad:user:${postId}:${username}`);
@@ -910,6 +1059,16 @@ api.post('/launchpad/submit', async (c) => {
       }
     }
 
+    // Validate imageAsset if provided (must have mediaId and mediaUrl)
+    let cleanImageAsset: MemeImageAsset | undefined;
+    if (imageAsset && imageAsset.mediaId && imageAsset.mediaUrl) {
+      cleanImageAsset = {
+        mediaId: imageAsset.mediaId,
+        mediaUrl: imageAsset.mediaUrl,
+        sourceType: imageAsset.sourceType === 'remote-url' ? 'remote-url' : 'upload',
+      };
+    }
+
     // 4. Create or update submission object
     const submissionId = isEdit && existingSubId ? existingSubId : 'sub_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
     const newSubmission: LaunchpadSubmission = {
@@ -924,6 +1083,7 @@ api.post('/launchpad/submit', async (c) => {
       supportCount: 1, // resets/initializes back to 1
       createdAt: new Date().toISOString(),
       imageUrl: cleanImageUrl,
+      imageAsset: cleanImageAsset,
       frameTheme: cleanFrameTheme,
       tagline: cleanTagline,
       creatorUsername: username,

@@ -143,6 +143,7 @@ export const ResultsScreen = ({
       tag: nom.tag,
       pitch: nom.pitch,
       imageUrl: nom.imageUrl,
+      imageAsset: nom.imageAsset,
       frameTheme: nom.frameTheme,
       tagline: nom.tagline,
       creatorUsername: nom.creatorUsername || nom.authorUsername,
@@ -579,9 +580,9 @@ export const ResultsScreen = ({
                     const isCurated = index < curatedNominees.length;
                     return (
                       <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm">
-                        {item.imageUrl ? (
+                        {(item.imageAsset?.mediaUrl || item.imageUrl) ? (
                           <img
-                            src={item.imageUrl}
+                            src={item.imageAsset?.mediaUrl || item.imageUrl}
                             alt={item.name}
                             className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0"
                             onError={(e) => {
@@ -593,7 +594,7 @@ export const ResultsScreen = ({
                         ) : null}
                         <span
                           className="text-2xl flex-shrink-0 w-9 h-9 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
-                          style={{ display: item.imageUrl ? 'none' : 'flex' }}
+                          style={{ display: (item.imageAsset?.mediaUrl || item.imageUrl) ? 'none' : 'flex' }}
                         >
                           {item.emoji}
                         </span>

@@ -5,7 +5,8 @@ import type {
   SubmitLaunchpadRequest,
   HypeErrorResponse,
   CuratedLaunchpadPreview,
-  CurateLaunchpadResponse
+  CurateLaunchpadResponse,
+  UploadMemeImageResponse,
 } from '../../shared/types';
 
 export const useLaunchpad = () => {
@@ -139,6 +140,25 @@ export const useLaunchpad = () => {
     }
   }, []);
 
+  const uploadMemeImage = useCallback(async (url: string, type: 'image' | 'gif') => {
+    try {
+      const res = await fetch('/api/upload-meme-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, type }),
+      });
+      if (!res.ok) {
+        const errData: HypeErrorResponse = await res.json();
+        throw new Error(errData.message || `Upload failed (HTTP ${res.status})`);
+      }
+      const data: UploadMemeImageResponse = await res.json();
+      return { success: true as const, data };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Image upload failed';
+      return { success: false as const, message: msg };
+    }
+  }, []);
+
   return {
     submissions,
     userSubmissionId,
@@ -152,6 +172,7 @@ export const useLaunchpad = () => {
     submitIdea,
     supportIdea,
     curateLaunchpad,
+    uploadMemeImage,
     refresh: fetchLaunchpad,
   };
 };

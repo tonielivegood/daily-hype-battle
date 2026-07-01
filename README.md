@@ -25,9 +25,10 @@ Daily Hype Battle is a playful, interactive, Reddit-native mini-game built on th
 
 ## 🛠️ Core Gameplay & Retention Mechanics
 * **Daily Ritual Stage Indicator**: A persistent stage rail (`1. Pick` ➔ `2. Lock` ➔ `3. Reveal` ➔ `4. Launch Tomorrow`) highlights the player’s progress through the daily loop.
-* **Meme Identity Builder**: Upgraded nomination forms allow players to specify taglines, optional web image URLs, and choose from 5 frame themes (Neon, Cursed, Wholesome, Chaos, Classic) with a real-time card preview.
+* **Meme Identity Builder**: Upgraded nomination forms allow players to specify taglines, choose from 5 frame themes (Neon, Cursed, Wholesome, Chaos, Classic), and attach a meme image. Supports uploading local images (max 1.5MB) or pasting URLs, which are safely hosted on Reddit's CDN via `media.upload()`, with a real-time card preview.
 * **Creator Credits & Ownership**: Submissions track creator usernames and display them as `Created by u/{username}` or `by u/{username}`. Current player's nominee is flagged as `Your Contender`.
-* **Image Fallback Safety**: If a custom image URL fails to load, the UI gracefully falls back to the nominee's emoji icon without crashing or blocking.
+* **Image Fallback Safety**: If a custom image fails to load or upload, the UI gracefully falls back to the nominee's emoji icon or legacy imageUrl without crashing or blocking.
+* **Safe Metadata Storage**: Redis stores only small image identifiers (`mediaId` and `mediaUrl`) rather than heavy binary data or raw base64.
 * **Smart Visitor Flow (Smart Settled State)**: If a visitor joins after a round is settled, they bypass Splash and go directly to Results with a participant status strip explaining they arrived after the reveal.
 * **Shareable Recap Helper**: A one-click button on the Results screen captures a text copy of the user’s score and champion status to paste in Reddit comments, generating organic discussions.
 * **Locked Selections**: Picks are saved to Redis and persist after page refreshes or tab closures.

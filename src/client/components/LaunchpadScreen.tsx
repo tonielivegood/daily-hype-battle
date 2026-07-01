@@ -1,8 +1,8 @@
-import { useState, FormEvent } from 'react';
+import { useState, useRef, FormEvent } from 'react';
 import { useLaunchpad } from '../hooks/useLaunchpad';
 import { LoadingSpinner } from './LoadingSpinner';
 import { CANDIDATES } from '../data/candidates';
-import type { HypeCandidate } from '../../shared/types';
+import type { HypeCandidate, MemeImageAsset } from '../../shared/types';
 import { DailyLoopRail } from './DailyLoopRail';
 import { YourNextMove } from './YourNextMove';
 import { MemeCard } from './MemeCard';
@@ -25,6 +25,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
     submitIdea,
     supportIdea,
     curateLaunchpad,
+    uploadMemeImage,
   } = useLaunchpad();
 
   // Curation state
@@ -44,6 +45,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
       tag: nom.tag,
       pitch: nom.pitch,
       imageUrl: nom.imageUrl,
+      imageAsset: nom.imageAsset,
       frameTheme: nom.frameTheme,
       tagline: nom.tagline,
       creatorUsername: nom.creatorUsername || nom.authorUsername,
@@ -68,6 +70,16 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
   const [frameTheme, setFrameTheme] = useState('Neon');
   const [tagline, setTagline] = useState('');
   const [imageFailed, setImageFailed] = useState(false);
+
+  // Image upload states
+  const [imageAsset, setImageAsset] = useState<MemeImageAsset | undefined>(undefined);
+  const [imageMode, setImageMode] = useState<'emoji' | 'upload' | 'url'>('emoji');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 1.5 * 1024 * 1024; // 1.5 MB
+  const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState<string | null>(null);
@@ -108,6 +120,99 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    setUploadError(null);
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setUploadError('Only PNG, JPEG, WEBP, and GIF images are accepted.');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(`Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 1.5 MB.`);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+
+      const mediaType = file.type === 'image/gif' ? 'gif' as const : 'image' as const;
+      const result = await uploadMemeImage(dataUrl, mediaType);
+
+      if (result.success) {
+        setImageAsset({
+          mediaId: result.data.mediaId,
+          mediaUrl: result.data.mediaUrl,
+          sourceType: 'upload',
+        });
+        setImageUrl('');
+        setImageFailed(false);
+      } else {
+        setUploadError(result.message);
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePasteUrl = async () => {
+    const cleanUrl = imageUrl.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith('https://')) {
+      setUploadError('Only https URLs are supported.');
+      return;
+    }
+
+    const lowerUrl = cleanUrl.toLowerCase();
+    if (lowerUrl.endsWith('.svg') || lowerUrl.includes('.svg?')) {
+      setUploadError('SVG images are not supported.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const mediaType = lowerUrl.endsWith('.gif') || lowerUrl.includes('.gif?') ? 'gif' as const : 'image' as const;
+      const result = await uploadMemeImage(cleanUrl, mediaType);
+
+      if (result.success) {
+        setImageAsset({
+          mediaId: result.data.mediaId,
+          mediaUrl: result.data.mediaUrl,
+          sourceType: 'remote-url',
+        });
+        setImageFailed(false);
+      } else {
+        // Keep the URL as legacy fallback — don't block the nomination
+        setUploadError(`Could not host image on Reddit. The URL will be used directly as fallback.`);
+      }
+    } catch (err) {
+      setUploadError('Could not host image on Reddit. The URL will be used directly as fallback.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearImage = () => {
+    setImageAsset(undefined);
+    setImageUrl('');
+    setImageFailed(false);
+    setUploadError(null);
+    setImageMode('emoji');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setValidationError(null);
@@ -118,9 +223,11 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
     const cleanTag = tag.trim().startsWith('#') ? tag.trim() : `#${tag.trim()}`;
     const cleanPitch = pitch.trim();
     const cleanWhy = why.trim();
-    const cleanImageUrl = imageUrl.trim() || undefined;
     const cleanFrameTheme = frameTheme.trim() || 'Neon';
     const cleanTagline = tagline.trim() || undefined;
+
+    // Keep legacy imageUrl only if no imageAsset and user typed a URL
+    const cleanImageUrl = !imageAsset && imageUrl.trim() ? imageUrl.trim() : undefined;
 
     if (!cleanEmoji || !cleanName || !cleanTag || !cleanPitch || !cleanWhy) {
       setValidationError('All nomination fields are required.');
@@ -143,8 +250,8 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
     }
 
     if (cleanImageUrl) {
-      if (!cleanImageUrl.startsWith('http://') && !cleanImageUrl.startsWith('https://')) {
-        setValidationError('Meme image URL must start with http:// or https://');
+      if (!cleanImageUrl.startsWith('https://')) {
+        setValidationError('Meme image URL must start with https://');
         return;
       }
     }
@@ -173,6 +280,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
       pitch: cleanPitch,
       why: cleanWhy,
       imageUrl: cleanImageUrl,
+      imageAsset,
       frameTheme: cleanFrameTheme,
       tagline: cleanTagline,
       isEdit: isEditing,
@@ -191,6 +299,10 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
       setFrameTheme('Neon');
       setTagline('');
       setImageFailed(false);
+      setImageAsset(undefined);
+      setImageMode('emoji');
+      setUploadError(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -202,9 +314,12 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
       setPitch(userSubmission.pitch);
       setWhy(userSubmission.why);
       setImageUrl(userSubmission.imageUrl || '');
+      setImageAsset(userSubmission.imageAsset);
+      setImageMode(userSubmission.imageAsset ? 'upload' : userSubmission.imageUrl ? 'url' : 'emoji');
       setFrameTheme(userSubmission.frameTheme || 'Neon');
       setTagline(userSubmission.tagline || '');
       setImageFailed(false);
+      setUploadError(null);
       setIsEditing(true);
     }
   };
@@ -217,9 +332,13 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
     setPitch('');
     setWhy('');
     setImageUrl('');
+    setImageAsset(undefined);
+    setImageMode('emoji');
+    setUploadError(null);
     setFrameTheme('Neon');
     setTagline('');
     setImageFailed(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   if (loading) {
@@ -277,6 +396,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
             tagline={userSubmission.tagline}
             pitch={userSubmission.pitch}
             imageUrl={userSubmission.imageUrl}
+            imageAsset={userSubmission.imageAsset}
             frameTheme={userSubmission.frameTheme}
             creatorUsername={userSubmission.creatorUsername || userSubmission.authorUsername}
             supportCount={userSubmission.supportCount}
@@ -414,23 +534,144 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
               />
             </div>
 
-            <div>
-              <label className="block text-game-sm uppercase font-bold text-hype-text-muted mb-1">
-                Meme image URL (optional)
+            {/* Meme Image Section */}
+            <div className="space-y-2">
+              <label className="block text-game-sm uppercase font-bold text-hype-text-muted">
+                Meme Image (optional)
               </label>
-              <input
-                type="text"
-                placeholder="https://example.com/meme.jpg"
-                value={imageUrl}
-                onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  setImageFailed(false);
-                }}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-game-md text-white focus:outline-none focus:border-hype-purple/50"
-              />
-              <span className="block text-game-xs text-hype-text-dim mt-1.5 leading-tight px-1">
-                💡 Use an image URL or keep the emoji icon. Upload support comes next.
-              </span>
+
+              {/* Mode selector */}
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { key: 'emoji' as const, label: '😎 Emoji Only' },
+                  { key: 'upload' as const, label: '📤 Upload' },
+                  { key: 'url' as const, label: '🔗 Paste URL' },
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => {
+                      setImageMode(opt.key);
+                      setUploadError(null);
+                    }}
+                    className={`text-game-sm py-1.5 rounded-lg border font-bold transition-all ${
+                      imageMode === opt.key
+                        ? 'bg-hype-purple/20 border-hype-purple/60 text-white shadow-[0_0_8px_rgba(168,85,247,0.3)]'
+                        : 'bg-black/35 border-white/10 text-hype-text-dim hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Upload mode */}
+              {imageMode === 'upload' && (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleFileUpload(file);
+                    }}
+                  />
+                  {imageAsset ? (
+                    <div className="flex items-center gap-2 bg-hype-green/10 border border-hype-green/30 rounded-xl p-2">
+                      <img
+                        src={imageAsset.mediaUrl}
+                        alt="Uploaded"
+                        className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                        onError={() => setImageFailed(true)}
+                      />
+                      <span className="text-game-sm text-hype-green font-bold flex-1 truncate">✓ Hosted on Reddit</span>
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="text-game-xs text-hype-text-dim hover:text-white border border-white/10 px-2 py-1 rounded-lg"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full py-3 bg-black/40 border-2 border-dashed border-white/15 rounded-xl text-game-md text-hype-text-dim hover:text-white hover:border-hype-purple/40 transition-all font-bold"
+                    >
+                      {uploading ? (
+                        <span className="animate-pulse">📤 Uploading to Reddit…</span>
+                      ) : (
+                        '📤 Choose image (PNG, JPEG, WEBP, GIF · max 1.5 MB)'
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* URL mode */}
+              {imageMode === 'url' && (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="https://example.com/meme.jpg"
+                      value={imageUrl}
+                      onChange={(e) => {
+                        setImageUrl(e.target.value);
+                        setImageFailed(false);
+                      }}
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-game-md text-white focus:outline-none focus:border-hype-purple/50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handlePasteUrl()}
+                      disabled={uploading || !imageUrl.trim()}
+                      className="px-3 py-2 bg-hype-purple/15 border border-hype-purple/40 text-hype-purple text-game-sm font-bold rounded-xl hover:bg-hype-purple/25 transition-colors disabled:opacity-40"
+                    >
+                      {uploading ? '…' : 'Host'}
+                    </button>
+                  </div>
+                  {imageAsset && (
+                    <div className="flex items-center gap-2 bg-hype-green/10 border border-hype-green/30 rounded-xl p-2">
+                      <img
+                        src={imageAsset.mediaUrl}
+                        alt="Hosted"
+                        className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                        onError={() => setImageFailed(true)}
+                      />
+                      <span className="text-game-sm text-hype-green font-bold flex-1 truncate">✓ Hosted on Reddit</span>
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="text-game-xs text-hype-text-dim hover:text-white border border-white/10 px-2 py-1 rounded-lg"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                  <span className="block text-game-xs text-hype-text-dim leading-tight px-1">
+                    💡 Tap "Host" to upload to Reddit. If it fails, the URL will be used directly.
+                  </span>
+                </div>
+              )}
+
+              {/* Emoji mode hint */}
+              {imageMode === 'emoji' && (
+                <p className="text-game-xs text-hype-text-dim leading-tight px-1">
+                  Your contender will use the emoji icon above as its avatar.
+                </p>
+              )}
+
+              {/* Upload error */}
+              {uploadError && (
+                <p className="text-game-sm text-hype-danger font-medium">
+                  ⚠️ {uploadError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -466,7 +707,8 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                 tag={tag}
                 tagline={tagline}
                 pitch={pitch}
-                imageUrl={imageUrl}
+                imageUrl={imageMode === 'url' ? imageUrl : undefined}
+                imageAsset={imageAsset}
                 frameTheme={frameTheme}
                 creatorUsername="You"
                 imageFailed={imageFailed}
@@ -541,9 +783,9 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
               >
                 {/* Nominee Header */}
                 <div className="flex items-center gap-2.5 mb-2">
-                  {sub.imageUrl ? (
+                  {(sub.imageAsset?.mediaUrl || sub.imageUrl) ? (
                     <img
-                      src={sub.imageUrl}
+                      src={sub.imageAsset?.mediaUrl || sub.imageUrl}
                       alt={sub.name}
                       className="w-10 h-10 rounded-lg object-cover border border-white/10 flex-shrink-0"
                       onError={(e) => {
@@ -555,7 +797,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                   ) : null}
                   <span
                     className="text-3xl flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
-                    style={{ display: sub.imageUrl ? 'none' : 'flex' }}
+                    style={{ display: (sub.imageAsset?.mediaUrl || sub.imageUrl) ? 'none' : 'flex' }}
                   >
                     {sub.emoji}
                   </span>
@@ -683,9 +925,9 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                     const isCurated = index < curatedNominees.length;
                     return (
                       <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm animate-fade-in-up">
-                        {item.imageUrl ? (
+                        {(item.imageAsset?.mediaUrl || item.imageUrl) ? (
                           <img
-                            src={item.imageUrl}
+                            src={item.imageAsset?.mediaUrl || item.imageUrl}
                             alt={item.name}
                             className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0"
                             onError={(e) => {
@@ -697,7 +939,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                         ) : null}
                         <span
                           className="text-2xl flex-shrink-0 w-9 h-9 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
-                          style={{ display: item.imageUrl ? 'none' : 'flex' }}
+                          style={{ display: (item.imageAsset?.mediaUrl || item.imageUrl) ? 'none' : 'flex' }}
                         >
                           {item.emoji}
                         </span>

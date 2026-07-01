@@ -1,3 +1,9 @@
+export type MemeImageAsset = {
+  mediaId: string;
+  mediaUrl: string;
+  sourceType: 'upload' | 'remote-url';
+};
+
 export type HypeCandidate = {
   id: string;
   emoji: string;
@@ -5,6 +11,7 @@ export type HypeCandidate = {
   tag: string;
   pitch: string;
   imageUrl?: string | undefined;
+  imageAsset?: MemeImageAsset | undefined;
   frameTheme?: string | undefined;
   tagline?: string | undefined;
   creatorUsername?: string | undefined;
@@ -77,6 +84,7 @@ export type LaunchpadSubmission = {
   supportCount: number;
   createdAt: string;
   imageUrl?: string | undefined;
+  imageAsset?: MemeImageAsset | undefined;
   frameTheme?: string | undefined;
   tagline?: string | undefined;
   creatorUsername?: string | undefined;
@@ -90,6 +98,7 @@ export type SubmitLaunchpadRequest = {
   pitch: string;
   why: string;
   imageUrl?: string | undefined;
+  imageAsset?: MemeImageAsset | undefined;
   frameTheme?: string | undefined;
   tagline?: string | undefined;
   isEdit?: boolean | undefined;
@@ -115,4 +124,14 @@ export type GetLaunchpadResponse = {
   userSubmissionId: string | null;
   supportedSubmissionIds: string[];
   curatedPreview: CuratedLaunchpadPreview | null;
+};
+
+export type UploadMemeImageRequest = {
+  url: string;
+  type: 'image' | 'gif';
+};
+
+export type UploadMemeImageResponse = {
+  mediaId: string;
+  mediaUrl: string;
 };
