@@ -40,6 +40,6 @@ Today’s contenders are active in the feed. Who will be crowned the community�
 
 > Welcome to the Daily Hype Battle thread! 🚀
 > 
-> As you wait for others to lock in, make sure to visit the **Meme Launchpad** tab. You can submit your own candidate with custom emojis, pitches, and tags, or support others. If a curator snapshots the nominations, you'll see tomorrow’s contender preview forming at the bottom of the Results screen!
+> As you wait for others to lock in, make sure to visit the **Meme Launchpad** tab. You can now build a complete **Meme Identity** for your contender: choose custom frame styles (Neon, Cursed, Wholesome, Chaos, Classic), add taglines, specify web image URLs, and get creator credits.
 > 
-> Drop your feedback, streak records, and meme ideas in the comments below! 👇
+> Once nominated, copy your contender's **Rally Comment** directly from the campaigning dashboard to paste here and get support upvotes! 👇

@@ -4,6 +4,8 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { CANDIDATES } from '../data/candidates';
 import type { HypeCandidate } from '../../shared/types';
 import { DailyLoopRail } from './DailyLoopRail';
+import { YourNextMove } from './YourNextMove';
+import { MemeCard } from './MemeCard';
 
 type LaunchpadScreenProps = {
   onBack: () => void;
@@ -41,6 +43,10 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
       name: nom.name,
       tag: nom.tag,
       pitch: nom.pitch,
+      imageUrl: nom.imageUrl,
+      frameTheme: nom.frameTheme,
+      tagline: nom.tagline,
+      creatorUsername: nom.creatorUsername || nom.authorUsername,
     });
   });
 
@@ -58,6 +64,11 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
   const [tag, setTag] = useState('');
   const [pitch, setPitch] = useState('');
   const [why, setWhy] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [frameTheme, setFrameTheme] = useState('Neon');
+  const [tagline, setTagline] = useState('');
+  const [imageFailed, setImageFailed] = useState(false);
+
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitSuccessMsg, setSubmitSuccessMsg] = useState<string | null>(null);
 
@@ -75,26 +86,26 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
   // Find user's own submission to highlight it
   const userSubmission = submissions.find((s) => s.id === userSubmissionId);
 
-  const startEditing = () => {
-    if (!userSubmission) return;
-    setEmoji(userSubmission.emoji);
-    setName(userSubmission.name);
-    setTag(userSubmission.tag);
-    setPitch(userSubmission.pitch);
-    setWhy(userSubmission.why);
-    setValidationError(null);
-    setSubmitSuccessMsg(null);
-    setIsEditing(true);
-  };
+  const [copiedRally, setCopiedRally] = useState(false);
+  const [copyRallyError, setCopyRallyError] = useState<string | null>(null);
 
-  const cancelEditing = () => {
-    setEmoji('');
-    setName('');
-    setTag('');
-    setPitch('');
-    setWhy('');
-    setValidationError(null);
-    setIsEditing(false);
+  const handleCopyRally = async () => {
+    if (!userSubmission) return;
+    const text = userSubmission.tagline
+      ? `Nominate my contender for tomorrow: ${userSubmission.emoji} ${userSubmission.name} — ${userSubmission.tagline}`
+      : `Nominate my contender for tomorrow: ${userSubmission.emoji} ${userSubmission.name} — ${userSubmission.pitch}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopiedRally(true);
+        setTimeout(() => setCopiedRally(false), 2000);
+      } else {
+        throw new Error('Clipboard API not available');
+      }
+    } catch (err) {
+      setCopyRallyError(text);
+      setTimeout(() => setCopyRallyError(null), 8000);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -104,61 +115,111 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
 
     const cleanEmoji = emoji.trim();
     const cleanName = name.trim();
-    let cleanTag = tag.trim();
-    if (cleanTag && !cleanTag.startsWith('#')) {
-      cleanTag = '#' + cleanTag;
-    }
+    const cleanTag = tag.trim().startsWith('#') ? tag.trim() : `#${tag.trim()}`;
     const cleanPitch = pitch.trim();
     const cleanWhy = why.trim();
+    const cleanImageUrl = imageUrl.trim() || undefined;
+    const cleanFrameTheme = frameTheme.trim() || 'Neon';
+    const cleanTagline = tagline.trim() || undefined;
 
-    // Client side validation
-    const emojiCount = Array.from(cleanEmoji).length;
-    if (emojiCount === 0 || emojiCount > 2) {
-      setValidationError('Emoji is required (1-2 icons).');
+    if (!cleanEmoji || !cleanName || !cleanTag || !cleanPitch || !cleanWhy) {
+      setValidationError('All nomination fields are required.');
       return;
     }
-    if (!cleanName || cleanName.length < 3 || cleanName.length > 32) {
-      setValidationError('Name must be between 3 and 32 characters.');
-      return;
-    }
-    if (cleanTag.length < 2 || cleanTag.length > 18) {
-      setValidationError('Tag must be between 2 and 18 characters.');
-      return;
-    }
-    if (!cleanPitch || cleanPitch.length < 10 || cleanPitch.length > 90) {
+
+    if (cleanPitch.length < 10 || cleanPitch.length > 90) {
       setValidationError('Pitch must be between 10 and 90 characters.');
       return;
     }
-    if (!cleanWhy || cleanWhy.length < 10 || cleanWhy.length > 120) {
-      setValidationError('Explanation why it burns must be between 10 and 120 characters.');
+
+    if (cleanWhy.length < 10 || cleanWhy.length > 120) {
+      setValidationError('Why it catches fire must be between 10 and 120 characters.');
       return;
     }
 
+    if (cleanTagline && cleanTagline.length > 50) {
+      setValidationError('Tagline must be under 50 characters.');
+      return;
+    }
+
+    if (cleanImageUrl) {
+      if (!cleanImageUrl.startsWith('http://') && !cleanImageUrl.startsWith('https://')) {
+        setValidationError('Meme image URL must start with http:// or https://');
+        return;
+      }
+    }
+
+    // Safety checks: Reject URLs or spam links in text pitches and taglines
     const urlPattern = /https?:\/\/[^\s]+/;
-    if (urlPattern.test(cleanPitch) || urlPattern.test(cleanWhy)) {
-      setValidationError('Links or URLs are not allowed in submissions.');
+    if (urlPattern.test(cleanPitch) || urlPattern.test(cleanWhy) || (cleanTagline && urlPattern.test(cleanTagline))) {
+      setValidationError('Nomination pitches and taglines cannot contain web URL links.');
       return;
     }
 
-    const res = await submitIdea({
+    // Financial/Stock/Betting wording checks
+    const forbidden = ['stock', 'trading', 'betting', 'crypto', 'portfolio', 'investment', 'wager', 'casino', 'gamble', 'real money'];
+    const textToCheck = `${cleanName} ${cleanTag} ${cleanPitch} ${cleanWhy} ${cleanTagline || ''}`.toLowerCase();
+    for (const word of forbidden) {
+      if (textToCheck.includes(word)) {
+        setValidationError(`Avoid financial, trading, betting, or crypto language ("${word}").`);
+        return;
+      }
+    }
+
+    const success = await submitIdea({
       emoji: cleanEmoji,
       name: cleanName,
       tag: cleanTag,
       pitch: cleanPitch,
       why: cleanWhy,
+      imageUrl: cleanImageUrl,
+      frameTheme: cleanFrameTheme,
+      tagline: cleanTagline,
       isEdit: isEditing,
     });
 
-    if (res.success) {
-      // Clear form and turn off edit mode
+    if (success) {
+      setSubmitSuccessMsg(isEditing ? 'Nomination updated successfully!' : 'Your contender nominated successfully!');
+      setIsEditing(false);
+      // Reset form
       setEmoji('');
       setName('');
       setTag('');
       setPitch('');
       setWhy('');
-      setIsEditing(false);
-      setSubmitSuccessMsg(isEditing ? 'Nomination updated successfully!' : 'Nomination submitted successfully!');
+      setImageUrl('');
+      setFrameTheme('Neon');
+      setTagline('');
+      setImageFailed(false);
     }
+  };
+
+  const startEditing = () => {
+    if (userSubmission) {
+      setEmoji(userSubmission.emoji);
+      setName(userSubmission.name);
+      setTag(userSubmission.tag);
+      setPitch(userSubmission.pitch);
+      setWhy(userSubmission.why);
+      setImageUrl(userSubmission.imageUrl || '');
+      setFrameTheme(userSubmission.frameTheme || 'Neon');
+      setTagline(userSubmission.tagline || '');
+      setImageFailed(false);
+      setIsEditing(true);
+    }
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEmoji('');
+    setName('');
+    setTag('');
+    setPitch('');
+    setWhy('');
+    setImageUrl('');
+    setFrameTheme('Neon');
+    setTagline('');
+    setImageFailed(false);
   };
 
   if (loading) {
@@ -188,6 +249,8 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
         <DailyLoopRail currentStage="launch" />
       </div>
 
+      <YourNextMove state={userSubmission ? 'launchpad_active' : 'launchpad_none'} />
+
       <div className="text-center mb-4">
         <h1 className="text-game-xl font-extrabold text-hype-text tracking-tight font-black uppercase">
           Meme Launchpad 🚀
@@ -206,42 +269,40 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
 
       {/* Nomination Form or User Submission Status Card */}
       {userSubmission && !isEditing ? (
-        <div className="hype-card px-4 py-3.5 border-hype-purple/40 bg-gradient-to-br from-hype-bg to-hype-purple/10 mb-6 animate-fade-in-up">
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-game-sm uppercase font-extrabold text-hype-purple">
-                Your Nomination
-              </span>
-              {userSubmission.id === submissions[0]?.id && userSubmission.supportCount > 0 && (
-                <span className="bg-hype-accent/20 border border-hype-accent/40 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                  🏆 Leading for Tomorrow
-                </span>
-              )}
-            </div>
+        <div className="space-y-4 mb-6">
+          <MemeCard
+            emoji={userSubmission.emoji}
+            name={userSubmission.name}
+            tag={userSubmission.tag}
+            tagline={userSubmission.tagline}
+            pitch={userSubmission.pitch}
+            imageUrl={userSubmission.imageUrl}
+            frameTheme={userSubmission.frameTheme}
+            creatorUsername={userSubmission.creatorUsername || userSubmission.authorUsername}
+            supportCount={userSubmission.supportCount}
+            onImageError={() => setImageFailed(true)}
+            imageFailed={imageFailed}
+            isUserNom={true}
+          />
+          <div className="flex justify-between items-center gap-2 pt-1">
             <button
               onClick={startEditing}
-              className="text-game-sm font-bold text-hype-text-dim hover:text-white transition-colors border border-white/10 px-2 py-1 rounded-lg bg-white/5"
+              className="flex-1 text-game-sm font-bold text-hype-text-dim hover:text-white transition-colors border border-white/10 py-2 rounded-lg bg-white/5"
             >
-              ✏️ Replace Nomination
+              ✏️ Edit Contender
+            </button>
+            <button
+              onClick={handleCopyRally}
+              className="flex-1 text-game-sm font-black text-hype-accent hover:bg-hype-accent/15 hover:text-white transition-colors border border-hype-accent/30 py-2 rounded-lg bg-hype-accent/5 uppercase tracking-wider"
+            >
+              {copiedRally ? '✓ Copied!' : '📣 Rally Comment'}
             </button>
           </div>
-          <div className="flex items-center gap-2.5">
-            <span className="text-3xl">{userSubmission.emoji}</span>
-            <div className="min-w-0">
-              <h4 className="font-bold text-game-lg text-white truncate">{userSubmission.name}</h4>
-              <span className="text-game-sm text-hype-purple font-medium">{userSubmission.tag}</span>
+          {copyRallyError && (
+            <div className="p-2 bg-black/45 border border-white/10 rounded-xl text-game-xs text-hype-text-dim text-left break-all select-all leading-normal">
+              <span className="text-hype-accent font-bold">Copy manually:</span> {copyRallyError}
             </div>
-            <div className="ml-auto text-right flex-shrink-0">
-              <span className="block text-game-lg font-black text-white">{userSubmission.supportCount}</span>
-              <span className="block text-game-xs text-hype-text-dim">Supports</span>
-            </div>
-          </div>
-          <p className="text-game-md text-hype-text-dim mt-2 italic leading-relaxed">
-            "{userSubmission.pitch}"
-          </p>
-          <div className="mt-3 pt-2.5 border-t border-white/5 text-game-sm text-hype-green font-semibold text-center">
-            ✓ Your nomination is active in the Launchpad! Share this post to rally community support votes.
-          </div>
+          )}
         </div>
       ) : (
         <div className="nomination-terminal px-4 py-4 mb-6 animate-fade-in-up">
@@ -339,6 +400,80 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
               />
             </div>
 
+            <div>
+              <label className="block text-game-sm uppercase font-bold text-hype-text-muted mb-1">
+                Tagline (optional, max 50 chars)
+              </label>
+              <input
+                type="text"
+                placeholder="The frog revolution has begun."
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                maxLength={50}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-game-md text-white focus:outline-none focus:border-hype-purple/50"
+              />
+            </div>
+
+            <div>
+              <label className="block text-game-sm uppercase font-bold text-hype-text-muted mb-1">
+                Meme image URL (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="https://example.com/meme.jpg"
+                value={imageUrl}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setImageFailed(false);
+                }}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-game-md text-white focus:outline-none focus:border-hype-purple/50"
+              />
+              <span className="block text-game-xs text-hype-text-dim mt-1.5 leading-tight px-1">
+                💡 Use an image URL or keep the emoji icon. Upload support comes next.
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-game-sm uppercase font-bold text-hype-text-muted mb-1">
+                Frame Theme Style
+              </label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {['Neon', 'Cursed', 'Wholesome', 'Chaos', 'Classic'].map((theme) => (
+                  <button
+                    key={theme}
+                    type="button"
+                    onClick={() => setFrameTheme(theme)}
+                    className={`text-game-sm py-1.5 rounded-lg border font-bold transition-all ${
+                      frameTheme === theme
+                        ? 'bg-hype-purple/20 border-hype-purple/60 text-white shadow-[0_0_8px_rgba(168,85,247,0.3)]'
+                        : 'bg-black/35 border-white/10 text-hype-text-dim hover:text-white'
+                    }`}
+                  >
+                    {theme}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Live Card Preview */}
+            <div className="pt-3 border-t border-white/10 space-y-2">
+              <span className="block text-game-sm uppercase font-black text-hype-purple tracking-wider">
+                Live Meme Card Preview
+              </span>
+              <MemeCard
+                emoji={emoji}
+                name={name}
+                tag={tag}
+                tagline={tagline}
+                pitch={pitch}
+                imageUrl={imageUrl}
+                frameTheme={frameTheme}
+                creatorUsername="You"
+                imageFailed={imageFailed}
+                onImageError={() => setImageFailed(true)}
+              />
+            </div>
+
             {validationError && (
               <p className="text-game-md text-hype-danger font-medium mt-1">
                 ⚠️ {validationError}
@@ -406,7 +541,24 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
               >
                 {/* Nominee Header */}
                 <div className="flex items-center gap-2.5 mb-2">
-                  <span className="text-3xl flex-shrink-0">{sub.emoji}</span>
+                  {sub.imageUrl ? (
+                    <img
+                      src={sub.imageUrl}
+                      alt={sub.name}
+                      className="w-10 h-10 rounded-lg object-cover border border-white/10 flex-shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                        const sib = (e.target as HTMLElement).nextSibling as HTMLElement;
+                        if (sib) sib.style.display = 'inline-block';
+                      }}
+                    />
+                  ) : null}
+                  <span
+                    className="text-3xl flex-shrink-0 w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
+                    style={{ display: sub.imageUrl ? 'none' : 'flex' }}
+                  >
+                    {sub.emoji}
+                  </span>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-bold text-game-lg text-hype-text truncate">
@@ -426,7 +578,7 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                     <div className="flex items-center gap-1.5 text-game-sm text-hype-text-muted">
                       <span>{sub.tag}</span>
                       <span>·</span>
-                      <span className="truncate">by u/{sub.authorUsername}</span>
+                      <span className="truncate">Founded by u/{sub.authorUsername}</span>
                     </div>
                   </div>
                   
@@ -531,21 +683,48 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
                     const isCurated = index < curatedNominees.length;
                     return (
                       <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm animate-fade-in-up">
-                        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                              const sib = (e.target as HTMLElement).nextSibling as HTMLElement;
+                              if (sib) sib.style.display = 'inline-block';
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          className="text-2xl flex-shrink-0 w-9 h-9 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
+                          style={{ display: item.imageUrl ? 'none' : 'flex' }}
+                        >
+                          {item.emoji}
+                        </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-bold text-game-lg text-white truncate">{item.name}</span>
                             {isCurated ? (
                               <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                                Curated Candidate
+                                Launchpad Pick
                               </span>
                             ) : (
                               <span className="bg-white/5 border border-white/10 text-hype-text-dim text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                                Default Candidate
+                                Community Nominee
+                              </span>
+                            )}
+                            {item.id === userSubmissionId && (
+                              <span className="bg-hype-purple/20 border border-hype-purple/40 text-hype-purple text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Your Contender
                               </span>
                             )}
                           </div>
-                          <p className="text-game-sm text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
+                          <div className="flex justify-between items-baseline gap-2">
+                            <p className="text-game-sm text-hype-text-dim truncate mt-0.5 flex-1">"{item.pitch}"</p>
+                            {item.creatorUsername && (
+                              <span className="text-[10px] text-hype-text-muted flex-shrink-0 font-medium">by u/{item.creatorUsername}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

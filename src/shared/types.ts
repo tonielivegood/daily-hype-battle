@@ -4,6 +4,10 @@ export type HypeCandidate = {
   name: string;
   tag: string;
   pitch: string;
+  imageUrl?: string | undefined;
+  frameTheme?: string | undefined;
+  tagline?: string | undefined;
+  creatorUsername?: string | undefined;
 };
 
 export type HypeAllocation = {
@@ -72,6 +76,11 @@ export type LaunchpadSubmission = {
   why: string;
   supportCount: number;
   createdAt: string;
+  imageUrl?: string | undefined;
+  frameTheme?: string | undefined;
+  tagline?: string | undefined;
+  creatorUsername?: string | undefined;
+  createdAtMs?: number | undefined;
 };
 
 export type SubmitLaunchpadRequest = {
@@ -80,7 +89,10 @@ export type SubmitLaunchpadRequest = {
   tag: string;
   pitch: string;
   why: string;
-  isEdit?: boolean;
+  imageUrl?: string | undefined;
+  frameTheme?: string | undefined;
+  tagline?: string | undefined;
+  isEdit?: boolean | undefined;
 };
 
 export type SupportLaunchpadRequest = {

@@ -1,35 +1,35 @@
 # AI Handoff: Daily Hype Battle
 
-Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing Phase 8B (Fresh Demo Post + First 30 Seconds Polish).
+Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing **Phase 10 (Daily Loop, Rally, & Player Motivation)** and **Phase 11A (Meme Identity & Creator Ownership Foundation)**.
 
 ---
 
 ## 🚩 Current Project Status
-We have successfully completed **Phase 8B: Fresh Demo Post + First 30 Seconds Polish**. The app is optimized to deliver an intuitive public player experience within 30 seconds of landing on the board.
+We have successfully implemented the Meme Identity Foundation, bringing taglines, frame themes, web image URLs, and creator credits to all nomination preview lineups and active campaigning cards.
 
-*   **Current App State**: The daily gameplay loop is stable, compiles cleanly, and is 100% bug-free:
-    1.  **Fresh Splash First Impression**: Replaced generic taglines with a high-contrast visual hierarchy (Title: "Daily Hype Battle", Hook: "Pick today’s meme. Launch tomorrow’s contender.", One-sentence explanation: "Spend 100 fictional Hype Points across today’s meme contenders, then come back for the reveal.").
-    2.  **Arena First Action Clarity**: Progress label changed to `{totalUsed} / {TOTAL_HYPE_POINTS} Hype Points` and instructions updated to clarify lock steps.
-    3.  **Results Above-the-Fold Polish**: Retained winning champion layout as the dominant feature and verified missed-round visitors see a prompt to nominate.
-    4.  **Launchpad Loop Hook**: Revised the Meme Launchpad subtitle and added loop reminders. Set empty nominees text to: "No nominees yet. Be the first to rally the crowd."
-    5.  **Terminology Audit & Safety**: Removed all occurrences of `test`, `demo`, `judge`, and `showcase` from player canvas code. Financial or betting words appear strictly in documentation and footer policy disclaimers.
+*   **Current App State**:
+    1.  **Meme Identity Builder**: The Meme Launchpad form includes fields for a Custom Tagline (max 50 chars), an optional Meme Image URL, and a Frame Style selector (Neon, Cursed, Wholesome, Chaos, Classic).
+    2.  **Live Meme Card Preview**: Renders a miniature card layout in real time showing the card border styles, loaded custom web images (or emoji fallbacks), tags, pitches, and creator credits.
+    3.  **Active Campaigning Dashboard**: Replaced the custom text layouts on the Launchpad with a polished campaigning card featuring the unified `MemeCard` layout, support vote trackers, and clipboard rally text shortcuts.
+    4.  **Community Nominee Thumbnail Fallbacks**: High-density list views (Launchpad list, Locked screen stakes, Results screen previews) show the custom image thumbnail if present. If the image fails to load, it automatically and silently falls back to the emoji icon via inline DOM `onError` hooks.
+    5.  **Creator Credits & Stakes**: Displaying nominee author credits (`Created by u/username`) and flagging the current player's submission as `Your Contender` across results, locked previews, and launchpad card grids.
+    6.  **Tagline Comments**: `Copy Rally Comment` buttons carry custom taglines if specified by the creator, defaulting back to the pitch if tagline is blank.
 
-*   **Git**: All code builds, type-checks, and lints successfully.
+*   **Compilation & Quality checks**:
+    *   `npm run type-check` compiles with 0 errors (fully compatible with `exactOptionalPropertyTypes: true`).
+    *   `npm run lint` lints with 0 warnings or errors.
+    *   `npm run build` bundles correctly using Vite.
 
 ---
 
 ## 💾 Curation Engine & Core Safety Specs
-1.  **No Logic Changes**: Absolutely no gameplay, allocation, lock/settle parameters, scoring formulas, or Redis schemas were modified.
-2.  **Vocabulary Hardening**: Checked that no finance, stock, betting, or crypto language is used. Disclaimers remain visible at the bottom of every page.
-3.  **Redis Keys**: Unchanged.
-    *   `hype:{postId}:{username}`: STRING of allocations.
-    *   `voters:${postId}`: HASH of voters.
-    *   `hype:results:${postId}`: STRING of settled results.
-    *   `launchpad:${postId}`: HASH of user nominations.
-    *   `curated-launchpad:${postId}`: STRING of curated top nominations.
+1.  **No Logic Changes**: Absolutely no gameplay allocation, lock/settle parameters, scoring formulas, or Redis schemas were modified.
+2.  **Optional Identity Schema**: Extended the `LaunchpadSubmission` and `HypeCandidate` types with optional parameters: `imageUrl?: string`, `frameTheme?: string`, `tagline?: string`, `creatorUsername?: string`, and `createdAtMs?: number`.
+3.  **URL Safety**: Added backend and frontend URL validation. Images must start with `http://` or `https://` web protocols. Text inputs (pitch, why, tagline) reject web links/URLs to prevent comment/description spam.
+4.  **Vocabulary Hardening**: Forbidden words checking covers taglines to ensure no betting, cryptocurrency, stocks, or financial jargon leaks into community boards.
 
 ---
 
-## 🎯 Recommended Next Phase (After Hackathon Submission)
-1.  **Devvit Cron Scheduler**: Set up a Devvit cron trigger to automatically rotate and post a new Daily Hype Battle post every 24 hours.
-2.  **Moderator Curation Panel**: Curation dashboard to delete or blacklist spam submissions.
+## 🎯 Recommended Next Phase: Phase 11B (Local File Uploads)
+1.  **Local Image Upload support**: Once Devvit supports local assets/image uploads natively inside WebView sandboxes, replace the optional image URL input with a local file picker drag-and-drop area.
+2.  **Redis Image Data considerations**: Avoid storing large raw base64 data strings directly in Redis keys. Ensure uploads are handled via Devvit Media upload APIs or transient URL asset hashes to keep Redis size low.

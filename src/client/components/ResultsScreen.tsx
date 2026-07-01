@@ -3,6 +3,7 @@ import type { HypeAllocation, SettledResults, LeaderboardEntry, HypeCandidate } 
 import { CANDIDATES } from '../data/candidates';
 import { useLaunchpad } from '../hooks/useLaunchpad';
 import { DailyLoopRail } from './DailyLoopRail';
+import { YourNextMove } from './YourNextMove';
 
 type ResultsScreenProps = {
   results: SettledResults;
@@ -32,20 +33,84 @@ export const ResultsScreen = ({
   onOpenLaunchpad,
 }: ResultsScreenProps) => {
   const [expandedMemeId, setExpandedMemeId] = useState<string | null>(null);
-  const { submissions, curatedPreview, loading: launchpadLoading } = useLaunchpad();
+  const { submissions, userSubmissionId, curatedPreview, loading: launchpadLoading } = useLaunchpad();
   const [showNextBoard, setShowNextBoard] = useState(false);
   const [showRoundControls, setShowRoundControls] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyErrorMsg, setCopyErrorMsg] = useState<string | null>(null);
+  const [copiedRally, setCopiedRally] = useState(false);
+  const [copyRallyError, setCopyRallyError] = useState<string | null>(null);
 
   const winningMeme = CANDIDATES.find((c) => c.id === results.winningMemeId);
   const topNominee = submissions.length > 0 ? submissions[0] : null;
 
+  const lockedPicks = allocations
+    .filter((a) => a.points > 0)
+    .sort((a, b) => b.points - a.points);
+  const topPick = lockedPicks[0];
+  const topCandidate = topPick ? CANDIDATES.find((c) => c.id === topPick.candidateId) : null;
+  const userSubmission = submissions.find((s) => s.id === userSubmissionId);
+
+  const handleCopyRally = async () => {
+    let text: string;
+    if (userSubmission) {
+      const slogan = userSubmission.tagline || userSubmission.pitch;
+      text = `Nominate my contender for tomorrow: ${userSubmission.emoji} ${userSubmission.name} — ${slogan}`;
+    } else if (topCandidate) {
+      const slogan = topCandidate.tagline || topCandidate.pitch;
+      text = `I’m backing ${topCandidate.emoji} ${topCandidate.name} today. ${slogan} Who’s with me?`;
+    } else {
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopiedRally(true);
+        setTimeout(() => setCopiedRally(false), 2000);
+      } else {
+        throw new Error('Clipboard API not available');
+      }
+    } catch (err) {
+      setCopyRallyError(text);
+      setTimeout(() => setCopyRallyError(null), 8000);
+    }
+  };
+
+  // Analyze result feedback
+  let feedbackText = 'Score reflects how closely your picks matched the final crowd-ranked board.';
+  let feedbackIcon = '🎯';
+
+  if (playerScore !== null) {
+    const hasWinner = allocations.some((a) => a.candidateId === results.winningMemeId && a.points > 0);
+    const sortedCandidates = [...results.candidates].sort((a, b) => b.finalHype - a.finalHype);
+    const isTop2Underdog = (candId: string) => {
+      const rankIdx = sortedCandidates.findIndex((c) => c.candidateId === candId);
+      return rankIdx > 0 && rankIdx < 3; // Finished 2nd or 3rd
+    };
+    const backedUnderdog = allocations.some((a) => isTop2Underdog(a.candidateId) && a.points > 0);
+    
+    const winnerResult = results.candidates.find((c) => c.candidateId === results.winningMemeId);
+    const hasCrowdDrag = winnerResult && winnerResult.crowdDrag > 10;
+
+    if (hasWinner) {
+      feedbackText = 'You backed the champion. Supporting today’s top contender boosted your score!';
+      feedbackIcon = '🏆';
+    } else if (backedUnderdog) {
+      feedbackText = 'Contrarian Spark: your underdog finished near the top, earning points against the main crowd!';
+      feedbackIcon = '⚡';
+    } else if (hasCrowdDrag) {
+      feedbackText = 'Crowd Drag: today’s winner suffered penalty points due to extreme popularity.';
+      feedbackIcon = '👥';
+    }
+  }
+
   const handleCopyRecap = async () => {
     const memeName = winningMeme?.name || 'A contender';
+    const emojiStr = winningMeme?.emoji || '';
     const text = playerScore !== null
-      ? `Today's Hype Battle is settled: ${memeName} won the crowd. I scored ${playerScore} Hype Points. Tomorrow's board is forming 🚀`
-      : `Today's Hype Battle is settled: ${memeName} won the crowd. Tomorrow's board is forming 🚀`;
+      ? `🏆 Daily Hype Battle Recap: ${memeName} ${emojiStr} is today’s Hype Champion! My Alignment Score: ${playerScore} Hype Points (Streak: ${streak} round${streak === 1 ? '' : 's'} 🔥). Nominate tomorrow’s meme on Daily Hype Battle.`
+      : `🏆 Daily Hype Battle Recap: ${memeName} ${emojiStr} is today’s Hype Champion! Nominate tomorrow’s meme on Daily Hype Battle.`;
 
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -77,6 +142,10 @@ export const ResultsScreen = ({
       name: nom.name,
       tag: nom.tag,
       pitch: nom.pitch,
+      imageUrl: nom.imageUrl,
+      frameTheme: nom.frameTheme,
+      tagline: nom.tagline,
+      creatorUsername: nom.creatorUsername || nom.authorUsername,
     });
   });
 
@@ -101,6 +170,8 @@ export const ResultsScreen = ({
       <div className="mb-4">
         <DailyLoopRail currentStage="reveal" />
       </div>
+
+      <YourNextMove state={playerScore !== null ? 'settled_voter' : 'settled_spectator'} />
 
       {/* Header */}
       <div className="text-center mb-5">
@@ -175,8 +246,23 @@ export const ResultsScreen = ({
         </div>
       </div>
 
+      {/* Player Feedback Card */}
+      <div className="hype-card px-4 py-3 bg-white/5 border-white/10 mb-4 animate-fade-in-up">
+        <div className="flex items-start gap-2.5">
+          <span className="text-2xl mt-0.5 flex-shrink-0">{feedbackIcon}</span>
+          <div className="text-left min-w-0">
+            <span className="block text-game-xs uppercase font-black tracking-wider text-hype-text-dim">
+              Performance Feedback
+            </span>
+            <p className="text-game-sm text-white mt-1 leading-relaxed font-semibold">
+              {feedbackText}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Shareable Recap Helper */}
-      <div className="mb-5 text-center">
+      <div className="mb-5 text-center flex flex-col gap-2">
         <button
           onClick={handleCopyRecap}
           className="hype-cta-secondary !w-full !max-w-sm !py-2.5 text-game-md !bg-hype-purple/5 !border-hype-purple/20 text-hype-text-dim hover:text-white"
@@ -186,6 +272,26 @@ export const ResultsScreen = ({
         {copyErrorMsg && (
           <div className="mt-2 p-2 bg-black/45 border border-white/10 rounded-xl text-game-sm text-hype-text-dim text-left break-all select-all">
             <span className="text-hype-accent font-bold">Copy manually:</span> {copyErrorMsg}
+          </div>
+        )}
+
+        {(userSubmission || topCandidate) && (
+          <div className="text-center">
+            <button
+              onClick={handleCopyRally}
+              className="hype-cta-secondary !w-full !max-w-sm !py-2 text-game-sm bg-transparent border border-hype-accent/30 text-hype-accent hover:bg-hype-accent/10 hover:text-white"
+            >
+              {copiedRally 
+                ? '✓ Rally Comment Copied!' 
+                : userSubmission 
+                  ? '📣 Copy Nomination Rally Comment' 
+                  : '📣 Copy Today’s Backing Rally'}
+            </button>
+            {copyRallyError && (
+              <div className="mt-2 p-2 bg-black/45 border border-white/10 rounded-xl text-game-xs text-hype-text-dim text-left break-all select-all leading-normal">
+                <span className="text-hype-accent font-bold">Copy manually:</span> {copyRallyError}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -222,9 +328,12 @@ export const ResultsScreen = ({
       {/* Player Leaderboard Section */}
       {leaderboard.length > 0 && (
         <div className="hype-card px-4 py-3.5 bg-white/5 border-white/10 mb-5">
-          <h3 className="text-game-sm font-black uppercase tracking-wider text-hype-text-dim mb-3 flex items-center gap-1.5">
+          <h3 className="text-game-sm font-black uppercase tracking-wider text-hype-text-dim mb-1 flex items-center gap-1.5">
             👑 Player Leaderboard
           </h3>
+          <p className="text-game-sm text-hype-text-dim mb-3 leading-relaxed font-medium">
+            Score reflects today’s alignment with the crowd. Streak shows consecutive rounds played.
+          </p>
           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
             {leaderboard.map((entry, index) => {
               const isCurrentUser = entry.username === username;
@@ -351,10 +460,10 @@ export const ResultsScreen = ({
       {/* Tomorrow's Contender Watch block */}
       <div className="hype-card px-5 py-4 bg-gradient-to-b from-hype-bg via-hype-purple/5 to-hype-purple/10 border-hype-purple/30 mb-5 text-center animate-fade-in-up">
         <span className="text-game-sm font-black text-hype-purple block uppercase tracking-wider">
-          🚀 Tomorrow's Board Is Forming
+          🚀 Tomorrow’s Board Is Forming
         </span>
         <p className="text-game-sm text-hype-text-dim mt-1.5 leading-relaxed max-w-xs mx-auto">
-          The next battle lineup is forming. Support existing nominees or nominate your own idea to shape tomorrow's card!
+          Top community nominees can enter a future board. Support existing nominees or nominate your own contender to shape tomorrow’s card!
         </p>
         
         {launchpadLoading ? (
@@ -370,6 +479,11 @@ export const ResultsScreen = ({
                     {index === 0 && (
                       <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
                         Preview Leader
+                      </span>
+                    )}
+                    {nom.id === userSubmissionId && (
+                      <span className="bg-hype-purple/20 border border-hype-purple/40 text-hype-purple text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                        Your Contender
                       </span>
                     )}
                   </div>
@@ -391,6 +505,11 @@ export const ResultsScreen = ({
                 <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
                   Leading Nominee
                 </span>
+                {topNominee.id === userSubmissionId && (
+                  <span className="bg-hype-purple/20 border border-hype-purple/40 text-hype-purple text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                    Your Contender
+                  </span>
+                )}
               </div>
               <p className="text-game-sm text-hype-text-dim truncate mt-0.5">{topNominee.pitch}</p>
             </div>
@@ -401,8 +520,8 @@ export const ResultsScreen = ({
           </div>
         ) : (
           <div className="mt-3.5 py-4 px-3 bg-black/40 border border-white/5 rounded-xl text-center">
-            <p className="text-game-md text-hype-text-dim leading-relaxed">
-              Tomorrow’s board is still forming 🚀<br />Nominate a contender to help shape tomorrow's board.
+            <p className="text-game-md text-hype-text-dim leading-relaxed font-semibold">
+              No nominees yet. Be the first to nominate tomorrow’s contender!
             </p>
           </div>
         )}
@@ -460,21 +579,48 @@ export const ResultsScreen = ({
                     const isCurated = index < curatedNominees.length;
                     return (
                       <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm">
-                        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-9 h-9 rounded-lg object-cover border border-white/10 flex-shrink-0"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                              const sib = (e.target as HTMLElement).nextSibling as HTMLElement;
+                              if (sib) sib.style.display = 'inline-block';
+                            }}
+                          />
+                        ) : null}
+                        <span
+                          className="text-2xl flex-shrink-0 w-9 h-9 flex items-center justify-center bg-white/5 rounded-lg border border-white/5"
+                          style={{ display: item.imageUrl ? 'none' : 'flex' }}
+                        >
+                          {item.emoji}
+                        </span>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-bold text-game-lg text-white truncate">{item.name}</span>
                             {isCurated ? (
                               <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                                Curated Candidate
+                                Launchpad Pick
                               </span>
                             ) : (
                               <span className="bg-white/5 border border-white/10 text-hype-text-dim text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                                Default Candidate
+                                Community Nominee
+                              </span>
+                            )}
+                            {item.id === userSubmissionId && (
+                              <span className="bg-hype-purple/20 border border-hype-purple/40 text-hype-purple text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Your Contender
                               </span>
                             )}
                           </div>
-                          <p className="text-game-sm text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
+                          <div className="flex justify-between items-baseline gap-2">
+                            <p className="text-game-sm text-hype-text-dim truncate mt-0.5 flex-1">"{item.pitch}"</p>
+                            {item.creatorUsername && (
+                              <span className="text-[10px] text-hype-text-muted flex-shrink-0 font-medium">by u/{item.creatorUsername}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

@@ -795,7 +795,7 @@ api.post('/launchpad/submit', async (c) => {
 
     // 1. Get body and destructure including isEdit
     const body: SubmitLaunchpadRequest = await c.req.json();
-    const { emoji, name, tag, pitch, why, isEdit } = body;
+    const { emoji, name, tag, pitch, why, imageUrl, frameTheme, tagline, isEdit } = body;
 
     // 2. Enforce one submission per user per post unless editing
     const existingSubId = await redis.get(`launchpad:user:${postId}:${username}`);
@@ -820,6 +820,9 @@ api.post('/launchpad/submit', async (c) => {
     }
     const cleanPitch = pitch?.trim() || '';
     const cleanWhy = why?.trim() || '';
+    const cleanImageUrl = imageUrl?.trim() || undefined;
+    const cleanFrameTheme = frameTheme?.trim() || 'Neon';
+    const cleanTagline = tagline?.trim() || undefined;
 
     const emojiCount = Array.from(cleanEmoji).length;
     if (emojiCount === 0 || emojiCount > 2) {
@@ -853,13 +856,41 @@ api.post('/launchpad/submit', async (c) => {
       );
     }
 
-    // Link/URL detection check
-    const urlPattern = /https?:\/\/[^\s]+/;
-    if (urlPattern.test(cleanPitch) || urlPattern.test(cleanWhy)) {
+    if (cleanTagline && cleanTagline.length > 50) {
       return c.json<HypeErrorResponse>(
-        { status: 'error', message: 'URLs are not allowed in meme pitches.' },
+        { status: 'error', message: 'Tagline must be under 50 characters.' },
         400
       );
+    }
+
+    if (cleanImageUrl) {
+      if (!cleanImageUrl.startsWith('http://') && !cleanImageUrl.startsWith('https://')) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: 'Meme image URL must start with http:// or https://' },
+          400
+        );
+      }
+    }
+
+    // Link/URL detection check for tagline, pitch, why
+    const urlPattern = /https?:\/\/[^\s]+/;
+    if (urlPattern.test(cleanPitch) || urlPattern.test(cleanWhy) || (cleanTagline && urlPattern.test(cleanTagline))) {
+      return c.json<HypeErrorResponse>(
+        { status: 'error', message: 'URLs are not allowed in meme pitches or taglines.' },
+        400
+      );
+    }
+
+    // Financial/Stock/Betting wording checks
+    const forbidden = ['stock', 'trading', 'betting', 'crypto', 'portfolio', 'investment', 'wager', 'casino', 'gamble', 'real money'];
+    const textToCheck = `${cleanName} ${cleanTag} ${cleanPitch} ${cleanWhy} ${cleanTagline || ''}`.toLowerCase();
+    for (const word of forbidden) {
+      if (textToCheck.includes(word)) {
+        return c.json<HypeErrorResponse>(
+          { status: 'error', message: `Avoid financial, trading, betting, or crypto language ("${word}").` },
+          400
+        );
+      }
     }
 
     // 3. Enforce no duplicate meme names per post (exclude own if editing)
@@ -892,6 +923,11 @@ api.post('/launchpad/submit', async (c) => {
       why: cleanWhy,
       supportCount: 1, // resets/initializes back to 1
       createdAt: new Date().toISOString(),
+      imageUrl: cleanImageUrl,
+      frameTheme: cleanFrameTheme,
+      tagline: cleanTagline,
+      creatorUsername: username,
+      createdAtMs: Date.now(),
     };
 
     // 5. Store to Redis

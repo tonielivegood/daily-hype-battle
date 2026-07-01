@@ -3,6 +3,7 @@ import type { HypeAllocation } from '../../shared/types';
 import { CandidateCard } from './CandidateCard';
 import { CANDIDATES, TOTAL_HYPE_POINTS } from '../data/candidates';
 import { DailyLoopRail } from './DailyLoopRail';
+import { YourNextMove } from './YourNextMove';
 
 type HypeBoardProps = {
   onLock: (allocations: HypeAllocation[]) => Promise<void>;
@@ -55,6 +56,11 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
       <div className="mb-4">
         <DailyLoopRail currentStage="pick" />
       </div>
+
+      <YourNextMove
+        state={totalUsed === 0 ? 'fresh' : isReady ? 'ready' : 'partial'}
+        remainingPoints={TOTAL_HYPE_POINTS - totalUsed}
+      />
 
       {/* Header */}
       <div className="text-center mb-4 animate-fade-in-up">
