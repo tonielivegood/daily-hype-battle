@@ -1,12 +1,12 @@
 # Reddit Post Copy: Daily Hype Battle
 
-Copy deck for the official Reddit demo post, including title options, explainer copy, and creator's first comment templates.
+Copy deck for the official Reddit launch post, including title options, explainer copy, and creator's first comment templates.
 
 ---
 
 ## 🏷️ Title Options
 
-1. 🏆 Daily Hype Battle (MVP) — Pick today’s meme. Launch tomorrow’s contender!
+1. 🏆 Daily Hype Battle — Pick today’s meme. Launch tomorrow’s contender!
 2. 🐸 Daily Hype Battle: Spend 100 Hype Points, back the Champion, and climb the Leaderboard!
 3. ⚡ Today's Battle is open! Allocate 100 points & nominate tomorrow's contenders in the Launchpad 🚀
 4. 🎮 Play: Daily Hype Battle — Today's board is open! (Fictional points only)
@@ -38,8 +38,8 @@ Today's contenders are active in the feed. Who will be crowned the community's H
 
 ## 💬 Suggested First Comment (Sticky/Pinned by Creator)
 
-> Welcome to the Daily Hype Battle playtest thread! 🚀
+> Welcome to the Daily Hype Battle thread! 🚀
 > 
-> As you wait for others to lock in, make sure to visit the **Meme Launchpad** tab. You can submit your own candidate with custom emojis, pitches, and tags, or support others. If a judge curates the snapshot, you'll see tomorrow's contender preview forming at the bottom of the Results screen!
+> As you wait for others to lock in, make sure to visit the **Meme Launchpad** tab. You can submit your own candidate with custom emojis, pitches, and tags, or support others. If a curator snapshots the nominations, you'll see tomorrow's contender preview forming at the bottom of the Results screen!
 > 
 > Drop your feedback, streak records, and meme ideas in the comments below! 👇

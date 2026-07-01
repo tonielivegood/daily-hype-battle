@@ -34,6 +34,7 @@ export const ResultsScreen = ({
   const [expandedMemeId, setExpandedMemeId] = useState<string | null>(null);
   const { submissions, curatedPreview, loading: launchpadLoading } = useLaunchpad();
   const [showNextBoard, setShowNextBoard] = useState(false);
+  const [showRoundControls, setShowRoundControls] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyErrorMsg, setCopyErrorMsg] = useState<string | null>(null);
 
@@ -108,12 +109,17 @@ export const ResultsScreen = ({
           The Crowd Has Spoken!
         </h1>
         {playerScore === null ? (
-          <p className="text-hype-accent text-game-md font-bold mt-1.5 leading-relaxed max-w-xs mx-auto animate-pulse">
-            ⚡ You arrived after the reveal. Today's board is settled. Help shape tomorrow's board!
-          </p>
+          <div className="mt-2.5 animate-fade-in-up">
+            <p className="text-hype-accent text-game-lg font-black uppercase tracking-wider">
+              You arrived after the reveal.
+            </p>
+            <p className="text-hype-text-dim text-game-md mt-1 leading-relaxed max-w-xs mx-auto font-medium">
+              Today’s picks are closed, but tomorrow’s board is forming.
+            </p>
+          </div>
         ) : (
           <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-xs mx-auto">
-            Today's Hype Battle results are settled. Here is how the contenders ranked.
+            The crowd has spoken. Today’s picks are closed. You can still help shape tomorrow’s board.
           </p>
         )}
       </div>
@@ -173,7 +179,7 @@ export const ResultsScreen = ({
       <div className="mb-5 text-center">
         <button
           onClick={handleCopyRecap}
-          className="hype-cta-secondary !w-full !max-w-sm !py-2.5 !text-xs !bg-hype-purple/5 !border-hype-purple/20 text-hype-text-dim hover:text-white"
+          className="hype-cta-secondary !w-full !max-w-sm !py-2.5 text-game-md !bg-hype-purple/5 !border-hype-purple/20 text-hype-text-dim hover:text-white"
         >
           {copied ? '✓ Recap Copied to Clipboard!' : '📋 Copy Shareable Recap'}
         </button>
@@ -414,63 +420,71 @@ export const ResultsScreen = ({
       </div>
 
       {/* Round Controls */}
-      <div className="mt-auto pt-5 border-t border-white/5 text-center">
-        <p className="text-game-sm text-hype-purple mb-1 font-bold uppercase tracking-wider">
-          ⚙️ Round Controls
-        </p>
-        <p className="text-game-sm text-hype-text-dim text-center mb-3 leading-relaxed max-w-xs mx-auto">
-          Use these controls to reveal results or inspect tomorrow's board during this showcase round.
-        </p>
-        <div className="flex flex-col gap-2 max-w-sm mx-auto">
-          <button
-            className="hype-lock-btn text-game-md !py-2.5 bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20 animate-fade-in-up"
-            onClick={onRecalculate}
-            disabled={settling}
-          >
-            {settling ? '⚙️ Revealing Results…' : 'Reveal Results 🏆'}
-          </button>
-          
-          <button
-            className="hype-lock-btn text-game-md !py-2.5 bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20 animate-fade-in-up"
-            onClick={() => setShowNextBoard((prev) => !prev)}
-          >
-            {showNextBoard ? '👁️ Hide Tomorrow\'s Board' : '👁️ See Tomorrow\'s Board 👀'}
-          </button>
-        </div>
+      <div className="mt-auto pt-4 border-t border-white/5 text-center">
+        <button
+          onClick={() => setShowRoundControls((prev) => !prev)}
+          className="text-game-sm font-black uppercase tracking-wider text-hype-text-muted hover:text-white transition-colors"
+        >
+          {showRoundControls ? '⚙️ Hide Round Controls' : '⚙️ Show Round Controls'}
+        </button>
 
-        {showNextBoard && (
-          <div className="mt-4 pt-3.5 border-t border-white/5 text-left animate-fade-in-up max-w-sm mx-auto">
-            <span className="block text-game-sm font-black uppercase text-hype-purple tracking-wider mb-2">
-              🔮 Tomorrow's Arena Card Line-up (Preview)
-            </span>
-            <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/5 shadow-inner">
-              {nextBoardList.map((item, index) => {
-                const isCurated = index < curatedNominees.length;
-                return (
-                  <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm">
-                    <span className="text-2xl flex-shrink-0">{item.emoji}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-game-lg text-white truncate">{item.name}</span>
-                        {isCurated ? (
-                          <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                            Curated Candidate
-                          </span>
-                        ) : (
-                          <span className="bg-white/5 border border-white/10 text-hype-text-dim text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                            Default Candidate
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-game-sm text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-game-sm text-hype-text-muted mt-2 text-center leading-relaxed">
-              This lists tomorrow's candidates. Candidates are generated dynamically from curations.
+        {showRoundControls && (
+          <div className="mt-3 p-3 bg-black/30 border border-white/5 rounded-xl animate-fade-in-up text-center max-w-sm mx-auto">
+            <p className="text-game-sm text-hype-text-dim text-center mb-3 leading-relaxed">
+              Use these controls to reveal results or inspect tomorrow's board.
             </p>
+            <div className="flex flex-col gap-2">
+              <button
+                className="hype-lock-btn text-game-md !py-2.5 bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20 animate-fade-in-up"
+                onClick={onRecalculate}
+                disabled={settling}
+              >
+                {settling ? '⚙️ Revealing Results…' : 'Reveal Results 🏆'}
+              </button>
+              
+              <button
+                className="hype-lock-btn text-game-md !py-2.5 bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20 animate-fade-in-up"
+                onClick={() => setShowNextBoard((prev) => !prev)}
+              >
+                {showNextBoard ? '👁️ Hide Tomorrow\'s Board' : '👁️ See Tomorrow\'s Board 👀'}
+              </button>
+            </div>
+
+            {showNextBoard && (
+              <div className="mt-4 pt-3.5 border-t border-white/5 text-left animate-fade-in-up">
+                <span className="block text-game-sm font-black uppercase text-hype-purple tracking-wider mb-2">
+                  🔮 Tomorrow's Arena Card Line-up
+                </span>
+                <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/5 shadow-inner">
+                  {nextBoardList.map((item, index) => {
+                    const isCurated = index < curatedNominees.length;
+                    return (
+                      <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm">
+                        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-game-lg text-white truncate">{item.name}</span>
+                            {isCurated ? (
+                              <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Curated Candidate
+                              </span>
+                            ) : (
+                              <span className="bg-white/5 border border-white/10 text-hype-text-dim text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Default Candidate
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-game-sm text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-game-sm text-hype-text-muted mt-2 text-center leading-relaxed">
+                  This lists tomorrow's candidates. Candidates are generated dynamically from curations.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

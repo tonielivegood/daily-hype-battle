@@ -52,7 +52,7 @@ Make sure you have Node.js v22 installed.
 
 ---
 
-## 🧪 Demo & Playtesting Steps
+## 🧪 Walkthrough & Playtesting Steps
 1. Log in your Devvit CLI: `npm run login`.
 2. Start development playtest server: `npm run dev`.
 3. Open the console playtest URL, visit the development subreddit `daily_hype_battle_dev`.

@@ -82,12 +82,20 @@ This roadmap outlines the phased development of the Daily Hype Battle Reddit app
 ### 🎯 Phase 7A: Retention Hook & Daily Ritual Loop Upgrade (Completed)
 *   [x] Create a reusable `DailyLoopRail` showing the 4 steps of the daily game ritual.
 *   [x] Integrate `DailyLoopRail` across Splash, HypeBoard, LockedScreen, ResultsScreen, and LaunchpadScreen.
-*   *   [x] Implement Option A: smart redirect for settled first-time visitors to go directly to ResultsScreen.
+*   [x] Implement Option A: smart redirect for settled first-time visitors to go directly to ResultsScreen.
 *   [x] Add clipboard Shareable Recap helper on ResultsScreen with copy manual fallbacks.
 *   [x] Refine copy and guides on all screens to create a daily ritual loop.
-*   [x] Ensure all judge/test actions are visually secondary and clearly marked.
+*   [x] Ensure all round controls are visually secondary and clearly marked.
 
-### 🎯 Phase 7B: README & Demo Polish
-*   [ ] Write comprehensive installation guidelines for subreddit moderators.
-*   [ ] Polish the initial playtest mock designs, graphics, and styles.
-*   [ ] Provide developer documentation for platform deployment.
+### 🎯 Phase 7C: Readability & Visual Hierarchy Pass (Completed)
+*   [x] Enforce mobile viewport compatibility (max-width `460px` container) and layout stability.
+*   [x] Implement custom typographic scale using clamp dynamic utilities (`text-game-xs` to `text-game-hero`).
+*   [x] Upgrade readability and contrast of Slate dim/muted colors.
+*   [x] Scale up buttons, contender names, and point values across Splash, Arena, Locked, Results, and Launchpad.
+
+### 🎯 Phase 8A: Public Player Loop + Missed-Round Hook Polish (Completed)
+*   [x] Establish Global Round State Clarity badges (open, locked, spoken, forming) on top of key screens.
+*   [x] Improve Settled / Missed-Round Results UX for non-voting visitors with explicit banners and CTAs.
+*   [x] Streamline Hype Arena dynamic locked buttons and instructions.
+*   [x] Wrap Round Controls in a collapsed togglable accordion section near the bottom.
+*   [x] Perform a final cleanup to remove developer jargon (test, demo, judge) from the player canvas.

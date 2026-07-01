@@ -46,7 +46,7 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
     <div className="hype-shell px-4 py-6">
       {/* Status strip */}
       <div className="text-center mb-3">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-hype-green/10 border border-hype-green/30 text-hype-green shadow-[0_0_12px_rgba(34,197,94,0.1)]">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-game-sm font-black uppercase tracking-wider bg-hype-green/10 border border-hype-green/30 text-hype-green shadow-[0_0_12px_rgba(34,197,94,0.1)]">
           🟢 Today’s board is open
         </span>
       </div>
@@ -61,8 +61,8 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
         <h1 className="text-game-xl font-black text-white uppercase tracking-tight">
           Today's Hype Arena
         </h1>
-        <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[330px] mx-auto">
-          Spend exactly 100 Hype Points. Use the <span className="text-white font-bold">+ / −</span> steppers to distribute your points (splits like 50/30/20 are welcome!).
+        <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[330px] mx-auto font-medium">
+          Pick today's meme. Spend exactly 100 Hype Points. Lock your hype.
         </p>
       </div>
 
@@ -87,7 +87,7 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
           />
         </div>
         <p className="text-game-sm text-hype-text-dim mt-1.5 text-right font-medium">
-          {isReady ? "✨ 100/100 reached! Ready to lock below." : `💡 Reach 100/100 to lock (allocate ${TOTAL_HYPE_POINTS - totalUsed} more)`}
+          {isReady ? "Ready to lock your hype 🔒" : `Spend ${TOTAL_HYPE_POINTS - totalUsed} more Hype Points`}
         </p>
       </div>
 
@@ -113,7 +113,7 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
           disabled={!isReady || locking}
           onClick={handleLock}
         >
-          {locking ? '🔒 Sealing Picks…' : isReady ? 'Ready to lock your hype 🔒' : `Spend exactly ${TOTAL_HYPE_POINTS} Hype Points before you lock`}
+          {locking ? '🔒 Sealing Picks…' : isReady ? 'Ready to lock your hype 🔒' : `Spend ${TOTAL_HYPE_POINTS - totalUsed} more Hype Points to lock`}
         </button>
       </div>
 

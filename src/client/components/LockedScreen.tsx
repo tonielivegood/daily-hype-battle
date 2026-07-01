@@ -21,6 +21,7 @@ export const LockedScreen = ({
 }: LockedScreenProps) => {
   const { curatedPreview } = useLaunchpad();
   const [showNextBoard, setShowNextBoard] = useState(false);
+  const [showRoundControls, setShowRoundControls] = useState(false);
 
   const lockedPicks = allocations
     .filter((a) => a.points > 0)
@@ -55,7 +56,7 @@ export const LockedScreen = ({
       {/* Status strip */}
       <div className="text-center mb-3">
         <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-game-sm font-black uppercase tracking-wider bg-hype-accent/10 border border-hype-accent/30 text-hype-accent shadow-[0_0_12px_rgba(249,115,22,0.1)]">
-          🔒 Picks are locked
+          🔒 Your hype is locked
         </span>
       </div>
 
@@ -70,8 +71,8 @@ export const LockedScreen = ({
         <h1 className="text-game-xl font-black text-hype-text tracking-tight animate-fade-in-up">
           Your Hype Is Locked 🔒
         </h1>
-        <p className="text-hype-accent text-game-md font-bold uppercase tracking-wider mt-1.5 animate-fade-in-up">
-          Come back for the reveal
+        <p className="text-hype-text-dim text-game-md font-medium mt-1.5 leading-relaxed max-w-xs mx-auto animate-fade-in-up">
+          Your hype is locked. Come back for the reveal. You can still nominate tomorrow’s meme.
         </p>
       </div>
 
@@ -150,63 +151,71 @@ export const LockedScreen = ({
       </div>
 
       {/* Round Controls */}
-      <div className="w-full max-w-sm border-t border-white/5 pt-5 mb-5">
-        <p className="text-game-sm text-hype-purple text-center mb-1 font-bold uppercase tracking-wider">
-          ⚙️ Round Controls
-        </p>
-        <p className="text-game-sm text-hype-text-dim text-center mb-3 leading-relaxed">
-          Use these controls to reveal results or inspect tomorrow's board during this showcase round.
-        </p>
-        <div className="flex flex-col gap-2">
-          <button
-            className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
-            onClick={onSettle}
-            disabled={settling}
-          >
-            {settling ? '⚙️ Revealing Results…' : 'Reveal Results 🏆'}
-          </button>
-          
-          <button
-            className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
-            onClick={() => setShowNextBoard((prev) => !prev)}
-          >
-            {showNextBoard ? '👁️ Hide Tomorrow\'s Board' : '👁️ See Tomorrow\'s Board 👀'}
-          </button>
-        </div>
+      <div className="w-full max-w-sm border-t border-white/5 pt-4 mb-4 text-center">
+        <button
+          onClick={() => setShowRoundControls((prev) => !prev)}
+          className="text-game-sm font-black uppercase tracking-wider text-hype-text-muted hover:text-white transition-colors"
+        >
+          {showRoundControls ? '⚙️ Hide Round Controls' : '⚙️ Show Round Controls'}
+        </button>
 
-        {showNextBoard && (
-          <div className="mt-4 pt-3.5 border-t border-white/5 text-left animate-fade-in-up">
-            <span className="block text-[10px] font-black uppercase text-hype-purple tracking-wider mb-2">
-              🔮 Tomorrow's Arena Card Line-up (Preview)
-            </span>
-            <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/5 shadow-inner">
-              {nextBoardList.map((item, index) => {
-                const isCurated = index < curatedNominees.length;
-                return (
-                  <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-xs">
-                    <span className="text-2xl flex-shrink-0">{item.emoji}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-white truncate">{item.name}</span>
-                        {isCurated ? (
-                          <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                            Curated Candidate
-                          </span>
-                        ) : (
-                          <span className="bg-white/5 border border-white/10 text-hype-text-dim text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none">
-                            Default Candidate
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-game-sm text-hype-text-muted mt-2 text-center leading-relaxed">
-              This lists tomorrow's candidates. Candidates are generated dynamically from curations.
+        {showRoundControls && (
+          <div className="mt-3 p-3 bg-black/30 border border-white/5 rounded-xl animate-fade-in-up text-center">
+            <p className="text-game-sm text-hype-text-dim text-center mb-3 leading-relaxed">
+              Use these controls to reveal results or inspect tomorrow's board.
             </p>
+            <div className="flex flex-col gap-2">
+              <button
+                className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
+                onClick={onSettle}
+                disabled={settling}
+              >
+                {settling ? '⚙️ Revealing Results…' : 'Reveal Results 🏆'}
+              </button>
+              
+              <button
+                className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
+                onClick={() => setShowNextBoard((prev) => !prev)}
+              >
+                {showNextBoard ? '👁️ Hide Tomorrow\'s Board' : '👁️ See Tomorrow\'s Board 👀'}
+              </button>
+            </div>
+
+            {showNextBoard && (
+              <div className="mt-4 pt-3.5 border-t border-white/5 text-left animate-fade-in-up">
+                <span className="block text-game-sm font-black uppercase text-hype-purple tracking-wider mb-2">
+                  🔮 Tomorrow's Arena Card Line-up
+                </span>
+                <div className="space-y-2 bg-black/40 p-3 rounded-xl border border-white/5 shadow-inner">
+                  {nextBoardList.map((item, index) => {
+                    const isCurated = index < curatedNominees.length;
+                    return (
+                      <div key={item.id} className="p-2.5 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 text-game-sm">
+                        <span className="text-2xl flex-shrink-0">{item.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-game-lg text-white truncate">{item.name}</span>
+                            {isCurated ? (
+                              <span className="bg-hype-accent/15 border border-hype-accent/30 text-hype-accent text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Curated Candidate
+                              </span>
+                            ) : (
+                              <span className="bg-white/5 border border-white/10 text-hype-text-dim text-game-xs uppercase font-black px-1.5 py-0.5 rounded leading-none">
+                                Default Candidate
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-game-sm text-hype-text-dim truncate mt-0.5">"{item.pitch}"</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-game-sm text-hype-text-muted mt-2 text-center leading-relaxed">
+                  This lists tomorrow's candidates. Candidates are generated dynamically from curations.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

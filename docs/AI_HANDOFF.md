@@ -1,23 +1,18 @@
 # AI Handoff: Daily Hype Battle
 
-Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing Phase 7A (Retention Hook & Daily Ritual Loop Upgrade).
+Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing Phase 8A (Public Player Loop + Missed-Round Hook Polish).
 
 ---
 
 ## 🚩 Current Project Status
-We have successfully completed **Phase 7A: Retention Hook & Daily Ritual Loop Upgrade**. The app is optimized for Reddit-native viral sharing, has clear next-step guides on every screen, and handles first-run visitor states gracefully.
+We have successfully completed **Phase 8A: Public Player Loop + Missed-Round Hook Polish**. The app is optimized for public players and judges, presenting a clear prediction loop and handling missed-round scenarios gracefully.
 
 *   **Current App State**: The daily gameplay loop is stable, compiles cleanly, and is 100% bug-free:
-    1.  **Daily Loop Rail Component**: Introduced `DailyLoopRail.tsx` embedded across Splash, Arena, Locked, Results, and Launchpad screens to make the daily ritual loop obvious in 3 seconds.
-    2.  **Smart Settled Redirect (Option A)**: First-time visitors opening a settled post bypass Splash and go directly to `ResultsScreen`, showing a clear label explaining they arrived after the reveal with score set to `-- (Watched after the reveal)`.
-    3.  **Shareable Recap Helper**: Clickable `"Copy Recap"` button copies a preformatted game summary to clipboard for easy sharing in Reddit comment threads, prompting organic discussion. Fallback copy container displays if clipboard API fails.
-    4.  **UX Guidance & Next-Step Hints**: 
-        *   Arena: steppers show allocation progress, button bounces and changes state to "Ready to lock your hype 🔒" at 100/100 Hype Points.
-        *   Locked: "Predictions Sealed" panel directs players to Launchpad to shape tomorrow's board.
-        *   Results: shows champion glow, stats, and a "Tomorrow's Board Is Forming" watchlist with a next-action pointer.
-        *   Launchpad: instructs players on how support votes shape tomorrow's card and includes user nomination active success indicators.
-    5.  **Round Controls**: Visually secondary bottom-placed host controls (`"Reveal Results 🏆"`, `"Shape Tomorrow's Board"`, `"See Tomorrow's Board 👀"`) to allow manual reveal/curation simulation.
-    6.  **Closed Round Lock Guardrail**: Backend `/api/hype/lock` blocks submissions if the round is already settled.
+    1.  **Global Round State Clarity**: Unified status badge displays (🟢 Today’s board is open, 🔒 Your hype is locked, 🏆 The crowd has spoken, 🚀 Tomorrow’s board is forming) at the top of key screens.
+    2.  **Settled / Missed-Round Results UX**: Viewers who did not vote see a clean "You arrived after the reveal" banner with "Today's picks are closed, but tomorrow's board is forming" helper copy. Score card displays "Watched after the reveal".
+    3.  **In-Canvas Next Action Dock**: Guided instructions dynamically update (e.g., "Spend X more Hype Points to lock" or "Ready to lock your hype 🔒"), and call-to-actions are scaled up for high readability.
+    4.  **Round Controls Cleanup**: Visually collapsed Round Controls under a toggle button (`"Show Round Controls" / "Hide Round Controls"`) to remove developer-clutter from normal players. Removed showcase round/demo/test wording.
+    5.  **Typography scale**: Responsive typography utilizing `clamp()` variables enforces a minimum font size for labels, points, buttons, and titles in Reddit's inline feed views.
 
 *   **Git**: All code builds, type-checks, and lints successfully.
 

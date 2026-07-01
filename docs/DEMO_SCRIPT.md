@@ -1,6 +1,6 @@
-# Video Demo Script: Daily Hype Battle (Under 60 Seconds)
+# Walkthrough Video Script: Daily Hype Battle (Under 60 Seconds)
 
-A fast-paced, high-energy walkthrough demonstrating the full gameplay loop to hackathon judges.
+A fast-paced, high-energy walkthrough demonstrating the full gameplay loop to evaluators.
 
 ---
 
@@ -19,6 +19,7 @@ A fast-paced, high-energy walkthrough demonstrating the full gameplay loop to ha
 ---
 
 ## 💡 Recording Tips
-1. **Speed**: Run the demo quickly. Use a browser auto-clicker or click fast to avoid wasting seconds on allocations.
+1. **Speed**: Run the script quickly. Use a browser auto-clicker or click fast to avoid wasting seconds on allocations.
 2. **Branding**: Make sure the purple glows, receipt ticket, and neon badges are fully visible.
 3. **Contrast**: Capture in Dark Mode if possible, as the arcade colors pop beautifully against dark themes.
+
