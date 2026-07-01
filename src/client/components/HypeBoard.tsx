@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { HypeAllocation } from '../../shared/types';
 import { CandidateCard } from './CandidateCard';
 import { CANDIDATES, TOTAL_HYPE_POINTS } from '../data/candidates';
+import { DailyLoopRail } from './DailyLoopRail';
 
 type HypeBoardProps = {
   onLock: (allocations: HypeAllocation[]) => Promise<void>;
@@ -44,35 +45,39 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
   return (
     <div className="hype-shell px-4 py-6">
       {/* Status strip */}
-      <div className="text-center mb-4">
+      <div className="text-center mb-3">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-hype-green/10 border border-hype-green/30 text-hype-green shadow-[0_0_12px_rgba(34,197,94,0.1)]">
           🟢 Today’s board is open
         </span>
       </div>
 
+      {/* Daily Loop Rail */}
+      <div className="mb-4">
+        <DailyLoopRail currentStage="pick" />
+      </div>
+
       {/* Header */}
-      <div className="text-center mb-5 animate-fade-in-up">
-        <h1 className="text-xl font-black text-white uppercase tracking-tight">
-          Today’s Hype Arena 🏆
+      <div className="text-center mb-4 animate-fade-in-up">
+        <h1 className="text-game-xl font-black text-white uppercase tracking-tight">
+          Today's Hype Arena
         </h1>
-        <p className="text-hype-text-dim text-xs mt-1.5 leading-relaxed max-w-xs mx-auto">
-          Distribute exactly {TOTAL_HYPE_POINTS} Hype Points on contender lanes, then lock your picks.
+        <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[330px] mx-auto">
+          Spend exactly 100 Hype Points. Use the <span className="text-white font-bold">+ / −</span> steppers to distribute your points (splits like 50/30/20 are welcome!).
         </p>
       </div>
 
       {/* Progress bar */}
-      <div className="mb-5 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-        <div className="flex justify-between items-baseline mb-1.5">
-          <span className="text-xs font-semibold text-hype-text-dim">
-            Hype Points
+      <div className="mb-4 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+        <div className="flex justify-between items-baseline mb-1">
+          <span className="text-game-sm font-semibold text-hype-text-dim uppercase tracking-wider">
+            Allocated points
           </span>
           <span
-            className={`text-sm font-bold transition-colors duration-200 ${
-              isReady ? 'text-hype-green' : 'text-hype-text'
+            className={`font-mono font-black transition-colors duration-200 ${
+              isReady ? 'text-hype-green text-game-lg' : 'text-white text-game-lg'
             }`}
           >
-            {totalUsed} / {TOTAL_HYPE_POINTS}
-            {isReady && ' ✓'}
+            {totalUsed} / {TOTAL_HYPE_POINTS} pts
           </span>
         </div>
         <div className="hype-progress-track">
@@ -81,6 +86,9 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
             style={{ width: `${progressPct}%` }}
           />
         </div>
+        <p className="text-game-sm text-hype-text-dim mt-1.5 text-right font-medium">
+          {isReady ? "✨ 100/100 reached! Ready to lock below." : `💡 Reach 100/100 to lock (allocate ${TOTAL_HYPE_POINTS - totalUsed} more)`}
+        </p>
       </div>
 
       {/* Candidate cards: Styled as a playfield board */}
@@ -101,26 +109,26 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
       {/* Lock button */}
       <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
         <button
-          className="hype-lock-btn"
+          className={`hype-lock-btn text-game-lg ${isReady && !locking ? 'animate-bounce !bg-gradient-to-r !from-hype-accent !to-hype-purple text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]' : ''}`}
           disabled={!isReady || locking}
           onClick={handleLock}
         >
-          {locking ? '🔒 Locking…' : isReady ? '🔒 Ready to lock your hype' : `Spend exactly ${TOTAL_HYPE_POINTS} Hype Points before you lock`}
+          {locking ? '🔒 Sealing Picks…' : isReady ? 'Ready to lock your hype 🔒' : `Spend exactly ${TOTAL_HYPE_POINTS} Hype Points before you lock`}
         </button>
       </div>
 
       {/* Launchpad Entry Point */}
-      <div className="text-center mt-3 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+      <div className="text-center mt-4 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
         <button
           onClick={onOpenLaunchpad}
-          className="text-xs font-bold text-hype-purple hover:text-white transition-colors"
+          className="text-game-md font-black text-hype-purple hover:text-white hover:underline transition-all uppercase tracking-wider"
         >
-          Nominate Tomorrow’s Meme 🚀
+          Nominate Tomorrow's Meme 🚀
         </button>
       </div>
 
       {/* Disclaimer */}
-      <p className="text-[10px] text-hype-text-muted text-center mt-4 px-2 leading-relaxed">
+      <p className="text-game-xs text-hype-text-muted text-center mt-4 px-2 leading-relaxed">
         Fictional Hype Points only. No real money. No crypto. No betting. Not connected to Reddit karma.
       </p>
     </div>

@@ -79,7 +79,15 @@ This roadmap outlines the phased development of the Daily Hype Battle Reddit app
 *   [ ] Integrate with Devvit's Reddit comment poster API to submit formatted text comments (e.g., *"🐸 Frog Vibes: 50pts | 💀 Skull Moment: 50pts. Let's go!"*).
 *   [ ] Ensure commenting is completely optional and does not gate gameplay progress.
 
-### 🎯 Phase 7: README & Demo Polish
+### 🎯 Phase 7A: Retention Hook & Daily Ritual Loop Upgrade (Completed)
+*   [x] Create a reusable `DailyLoopRail` showing the 4 steps of the daily game ritual.
+*   [x] Integrate `DailyLoopRail` across Splash, HypeBoard, LockedScreen, ResultsScreen, and LaunchpadScreen.
+*   *   [x] Implement Option A: smart redirect for settled first-time visitors to go directly to ResultsScreen.
+*   [x] Add clipboard Shareable Recap helper on ResultsScreen with copy manual fallbacks.
+*   [x] Refine copy and guides on all screens to create a daily ritual loop.
+*   [x] Ensure all judge/test actions are visually secondary and clearly marked.
+
+### 🎯 Phase 7B: README & Demo Polish
 *   [ ] Write comprehensive installation guidelines for subreddit moderators.
 *   [ ] Polish the initial playtest mock designs, graphics, and styles.
 *   [ ] Provide developer documentation for platform deployment.

@@ -44,11 +44,11 @@ export const Game = () => {
     return <LaunchpadScreen onBack={() => setCurrentView('main')} />;
   }
 
-  if (settled && results && allocations) {
+  if (settled && results) {
     return (
       <ResultsScreen
         results={results}
-        allocations={allocations}
+        allocations={allocations || []}
         playerScore={playerScore}
         streak={streak}
         badges={badges}

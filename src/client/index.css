@@ -10,8 +10,8 @@
   --color-hype-pink: #ec4899;
   --color-hype-green: #22c55e;
   --color-hype-text: #f1f5f9;
-  --color-hype-text-dim: #94a3b8;
-  --color-hype-text-muted: #64748b;
+  --color-hype-text-dim: #cbd5e1;
+  --color-hype-text-muted: #94a3b8;
   --color-hype-danger: #ef4444;
   --color-hype-bar-from: #f97316;
   --color-hype-bar-via: #a855f7;
@@ -25,6 +25,7 @@ body {
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.45;
 }
 
 /* ── Shared Game Shell Container ── */
@@ -379,5 +380,28 @@ body {
     box-shadow: 0 0 25px rgba(168, 85, 247, 0.6), inset 0 0 25px rgba(168, 85, 247, 0.6);
     border-color: var(--color-hype-purple);
   }
+}
+
+/* ── Typography Scale ── */
+.text-game-xs {
+  font-size: clamp(10px, 2.5vw, 11px);
+}
+.text-game-sm {
+  font-size: clamp(12px, 3vw, 13px);
+}
+.text-game-md {
+  font-size: clamp(14px, 3.5vw, 15px);
+  line-height: 1.45;
+}
+.text-game-lg {
+  font-size: clamp(16px, 4vw, 18px);
+}
+.text-game-xl {
+  font-size: clamp(22px, 5.5vw, 28px);
+  line-height: 1.35;
+}
+.text-game-hero {
+  font-size: clamp(30px, 7vw, 38px);
+  line-height: 1.25;
 }
 

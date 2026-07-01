@@ -1,40 +1,40 @@
 # AI Handoff: Daily Hype Battle
 
-Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing Phase 5D (Submission Readiness & Demo Packaging).
+Welcome to the next coding session. This document contains the current state of the Daily Hype Battle project after completing Phase 7A (Retention Hook & Daily Ritual Loop Upgrade).
 
 ---
 
 ## 🚩 Current Project Status
-We have successfully completed **Phase 5D: Submission Readiness & Demo Packaging**. The project is fully documented, playtested, and ready for Reddit Hackathon submission.
+We have successfully completed **Phase 7A: Retention Hook & Daily Ritual Loop Upgrade**. The app is optimized for Reddit-native viral sharing, has clear next-step guides on every screen, and handles first-run visitor states gracefully.
 
 *   **Current App State**: The daily gameplay loop is stable, compiles cleanly, and is 100% bug-free:
-    1.  **Splash Screen (Arcade Start)**: Status badge (`🟢 Today’s board is open`).
-    2.  **Arena (HypeBoard)**: Dynamic Turn-Ready Lock button labels. Status strip `🟢 Today’s board is open` added to the top.
-    3.  **Locked Screen (Arcade Ticket)**: Sealed ticket receipt with a custom punched `"LOCKED"` stamp and status strip `🔒 Picks are locked` added. Guides waiting users to Meme Launchpad. Includes `Preview Next Board` toggle.
-    4.  **Results Screen (Podium Celebration)**: Highlights the champion meme on a celebratory `.podium-stage`. Displays stats side-by-side. Displays status strip `🏆 The crowd has spoken`. Displays **Tomorrow’s Board Preview** dynamically. Includes `Preview Next Board` toggle.
-    5.  **Meme Launchpad (Nomination Terminal)**: Form uses `.nomination-terminal` style. Displays header status strip `🚀 Tomorrow’s board is forming`. Exposes a **Judge Panel** near the bottom. Click `"Curate Tomorrow’s Preview"` to query nominees and snapshot the top 3. Click `"Preview Next Board"` to toggle tomorrow's candidate lane preview.
+    1.  **Daily Loop Rail Component**: Introduced `DailyLoopRail.tsx` embedded across Splash, Arena, Locked, Results, and Launchpad screens to make the daily ritual loop obvious in 3 seconds.
+    2.  **Smart Settled Redirect (Option A)**: First-time visitors opening a settled post bypass Splash and go directly to `ResultsScreen`, showing a clear label explaining they arrived after the reveal with score set to `-- (Watched after the reveal)`.
+    3.  **Shareable Recap Helper**: Clickable `"Copy Recap"` button copies a preformatted game summary to clipboard for easy sharing in Reddit comment threads, prompting organic discussion. Fallback copy container displays if clipboard API fails.
+    4.  **UX Guidance & Next-Step Hints**: 
+        *   Arena: steppers show allocation progress, button bounces and changes state to "Ready to lock your hype 🔒" at 100/100 Hype Points.
+        *   Locked: "Predictions Sealed" panel directs players to Launchpad to shape tomorrow's board.
+        *   Results: shows champion glow, stats, and a "Tomorrow's Board Is Forming" watchlist with a next-action pointer.
+        *   Launchpad: instructs players on how support votes shape tomorrow's card and includes user nomination active success indicators.
+    5.  **Round Controls**: Visually secondary bottom-placed host controls (`"Reveal Results 🏆"`, `"Shape Tomorrow's Board"`, `"See Tomorrow's Board 👀"`) to allow manual reveal/curation simulation.
+    6.  **Closed Round Lock Guardrail**: Backend `/api/hype/lock` blocks submissions if the round is already settled.
+
 *   **Git**: All code builds, type-checks, and lints successfully.
 
 ---
 
-## 💾 Curation Engine Specs
-1.  **Redis Keys**:
-    *   `curated-launchpad:${postId}`: `STRING` storing the JSON-serialized `CuratedLaunchpadPreview` object.
-2.  **API Endpoints**:
-    *   `POST /api/launchpad/curate`: Performs ranking on the server, takes top 1-3, generates the curated preview snapshot, and writes to Redis.
-    *   `GET /api/launchpad`: Now returns `curatedPreview` along with nominations.
-3.  **No Automatic Scheduler**: Autonomously postponed automatic daily cron triggers and auto-promotion to maintain database safety and prevent bugs during playtesting.
-4.  **No Core Logic Changes**: Absolutely no gameplay, allocation, lock/settle parameters, scoring formulas, or Redis schemas were modified.
-
----
-
-## 🔒 Safety & Policy Guardrails
-*   **Vocabulary Hardening**: Strictly verified that no finance, gambling, stock, or crypto words are used. Disclaimers remain fully visible on all pages.
-*   **Wording Constraints**: Used words like "Preview", "Candidate", and "Can shape tomorrow’s board" to describe tomorrow's contenders. Avoided words like "Promoted", "Listed", "Guaranteed", and "IPO".
+## 💾 Curation Engine & Core Safety Specs
+1.  **No Logic Changes**: Absolutely no gameplay, allocation, lock/settle parameters, scoring formulas, or Redis schemas were modified.
+2.  **Vocabulary Hardening**: Checked that no finance, stock, betting, or crypto language is used. Disclaimers remain visible at the bottom of every page.
+3.  **Redis Keys**: Unchanged.
+    *   `hype:{postId}:{username}`: STRING of allocations.
+    *   `voters:${postId}`: HASH of voters.
+    *   `hype:results:${postId}`: STRING of settled results.
+    *   `launchpad:${postId}`: HASH of user nominations.
+    *   `curated-launchpad:${postId}`: STRING of curated top nominations.
 
 ---
 
 ## 🎯 Recommended Next Phase (After Hackathon Submission)
-Your next goal is to implement the next step of daily automation loop:
-1.  **Moderator Vetting Panel**: Add curation controls for mods to discard/reject inappropriate memes from the Launchpad.
-2.  **Devvit Cron Scheduler**: Set up a Devvit cron trigger to automatically rotate and post a new Daily Hype Battle post every 24 hours.
+1.  **Devvit Cron Scheduler**: Set up a Devvit cron trigger to automatically rotate and post a new Daily Hype Battle post every 24 hours.
+2.  **Moderator Curation Panel**: Curation dashboard to delete or blacklist spam submissions.

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { HypeAllocation, HypeCandidate } from '../../shared/types';
 import { CANDIDATES } from '../data/candidates';
 import { useLaunchpad } from '../hooks/useLaunchpad';
+import { DailyLoopRail } from './DailyLoopRail';
 
 type LockedScreenProps = {
   allocations: HypeAllocation[];
@@ -52,20 +53,25 @@ export const LockedScreen = ({
   return (
     <div className="hype-shell items-center px-5 py-8 animate-fade-in-up">
       {/* Status strip */}
-      <div className="text-center mb-4">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-hype-accent/10 border border-hype-accent/30 text-hype-accent shadow-[0_0_12px_rgba(249,115,22,0.1)]">
+      <div className="text-center mb-3">
+        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-game-sm font-black uppercase tracking-wider bg-hype-accent/10 border border-hype-accent/30 text-hype-accent shadow-[0_0_12px_rgba(249,115,22,0.1)]">
           🔒 Picks are locked
         </span>
       </div>
 
+      {/* Daily Loop Rail */}
+      <div className="w-full mb-5">
+        <DailyLoopRail currentStage="lock" />
+      </div>
+
       {/* Celebration header */}
-      <div className="text-center mb-6">
-        <div className="text-5xl mb-3">🔒</div>
-        <h1 className="text-2xl font-black text-hype-text tracking-tight">
-          Your Hype Is Locked
+      <div className="text-center mb-5">
+        <div className="text-5xl mb-2">🔒</div>
+        <h1 className="text-game-xl font-black text-hype-text tracking-tight animate-fade-in-up">
+          Your Hype Is Locked 🔒
         </h1>
-        <p className="text-hype-accent text-xs font-bold uppercase tracking-wider mt-1.5">
-          Your picks are sealed for today
+        <p className="text-hype-accent text-game-md font-bold uppercase tracking-wider mt-1.5 animate-fade-in-up">
+          Come back for the reveal
         </p>
       </div>
 
@@ -75,7 +81,7 @@ export const LockedScreen = ({
         <div className="ticket-stamp select-none">LOCKED</div>
         
         {/* Ticket header */}
-        <div className="flex justify-between items-center pb-3 border-b border-dashed border-white/20 mb-3.5 text-hype-text-dim text-[10px] font-mono tracking-widest uppercase">
+        <div className="flex justify-between items-center pb-3 border-b border-dashed border-white/20 mb-3.5 text-hype-text-dim text-game-sm font-mono tracking-widest uppercase">
           <span>Hype Ticket</span>
           <span>Verified Receipt</span>
         </div>
@@ -94,16 +100,16 @@ export const LockedScreen = ({
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="text-2xl flex-shrink-0">{candidate.emoji}</span>
                   <div className="min-w-0">
-                    <span className="font-bold text-sm text-white truncate block">
+                    <span className="font-bold text-game-lg text-white truncate block">
                       {candidate.name}
                     </span>
-                    <span className="text-[10px] text-hype-text-dim block">
+                    <span className="text-game-sm text-hype-text-dim block">
                       {candidate.tag}
                     </span>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <span className="font-black text-sm text-hype-accent bg-hype-accent/10 border border-hype-accent/30 rounded-lg px-2.5 py-1">
+                  <span className="font-black text-game-lg text-hype-accent bg-hype-accent/10 border border-hype-accent/30 rounded-lg px-2.5 py-1">
                     {alloc.points} pts
                   </span>
                 </div>
@@ -113,56 +119,58 @@ export const LockedScreen = ({
         </div>
 
         {/* Ticket footer summary */}
-        <div className="mt-4 pt-3 border-t border-dashed border-white/20 flex justify-between items-center text-xs font-mono">
+        <div className="mt-4 pt-3 border-t border-dashed border-white/20 flex justify-between items-center text-game-md font-mono">
           <span className="text-hype-text-dim uppercase tracking-wider">Total Hype Locked:</span>
-          <span className="font-black text-white text-sm">{totalPoints} pts</span>
+          <span className="font-black text-white text-game-lg">{totalPoints} pts</span>
         </div>
       </div>
 
       {/* Come back message & Launchpad CTA */}
       <div className="hype-card px-5 py-4 text-center max-w-sm w-full mb-6">
-        <p className="text-base font-extrabold text-hype-text">
-          ⏳ Your picks are sealed for today.
+        <p className="text-game-lg font-extrabold text-white">
+          Your Hype Is Locked 🔒
         </p>
-        <p className="text-xs text-hype-text-dim mt-1.5 mb-4 leading-relaxed">
-          The reveal happens after the round settles. Come back tomorrow to see how the crowd voted.
+        <p className="text-game-md text-hype-text-dim mt-1.5 mb-4 leading-relaxed">
+          Come back for the reveal. The crowd decides the winner once results are announced.
         </p>
         <div className="border-t border-white/5 pt-3.5">
-          <p className="text-xs text-hype-accent font-bold mb-1.5">
-            While you wait:
+          <p className="text-game-md text-hype-accent font-bold mb-2">
+            While you wait, nominate tomorrow's meme:
           </p>
-          <ul className="text-[11px] text-hype-text-dim space-y-1 mb-4 inline-block text-left">
-            <li>• Nominate tomorrow’s contender.</li>
-            <li>• Support community nominees.</li>
-          </ul>
+          <p className="text-game-md text-hype-text-dim mb-4 leading-relaxed max-w-[285px] mx-auto">
+            Submit a contender (1 per player) or support community nominees to shape tomorrow's card.
+          </p>
           <button
             onClick={onOpenLaunchpad}
-            className="hype-lock-btn !py-2.5 !text-xs bg-gradient-to-r from-hype-accent to-hype-purple text-white hover:opacity-90"
+            className="hype-lock-btn text-game-lg !py-2.5 bg-gradient-to-r from-hype-accent to-hype-purple text-white hover:opacity-90 animate-pulse"
           >
-            Nominate Tomorrow’s Meme 🚀
+            Nominate Tomorrow's Meme 🚀
           </button>
         </div>
       </div>
 
-      {/* Judge Settlement Button (Test-only / Demo Settlement Trigger) */}
-      <div className="w-full max-w-sm border-t border-white/5 pt-6 mb-6">
-        <p className="text-[10px] text-hype-text-muted text-center mb-2.5 font-bold uppercase tracking-wider">
-          ⚙️ Judge Panel (Demo Settle Control)
+      {/* Round Controls */}
+      <div className="w-full max-w-sm border-t border-white/5 pt-5 mb-5">
+        <p className="text-game-sm text-hype-purple text-center mb-1 font-bold uppercase tracking-wider">
+          ⚙️ Round Controls
+        </p>
+        <p className="text-game-sm text-hype-text-dim text-center mb-3 leading-relaxed">
+          Use these controls to reveal results or inspect tomorrow's board during this showcase round.
         </p>
         <div className="flex flex-col gap-2">
           <button
-            className="hype-lock-btn !py-2.5 !text-xs !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
+            className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
             onClick={onSettle}
             disabled={settling}
           >
-            {settling ? '⚙️ Settling Round…' : '⚡ Settle Demo Round (Judge Action)'}
+            {settling ? '⚙️ Revealing Results…' : 'Reveal Results 🏆'}
           </button>
           
           <button
-            className="hype-lock-btn !py-2.5 !text-xs !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
+            className="hype-lock-btn text-game-md !py-2.5 !bg-transparent border border-white/10 text-hype-text-dim hover:text-white hover:bg-white/5 hover:border-white/20"
             onClick={() => setShowNextBoard((prev) => !prev)}
           >
-            {showNextBoard ? '👁️ Hide Next Board Preview' : '👁️ Preview Next Board'}
+            {showNextBoard ? '👁️ Hide Tomorrow\'s Board' : '👁️ See Tomorrow\'s Board 👀'}
           </button>
         </div>
 
@@ -196,8 +204,8 @@ export const LockedScreen = ({
                 );
               })}
             </div>
-            <p className="text-[9px] text-hype-text-muted mt-2 text-center leading-relaxed">
-              This preview lists tomorrow's candidates. It is generated dynamically for testing.
+            <p className="text-game-sm text-hype-text-muted mt-2 text-center leading-relaxed">
+              This lists tomorrow's candidates. Candidates are generated dynamically from curations.
             </p>
           </div>
         )}
@@ -210,7 +218,7 @@ export const LockedScreen = ({
       </div>
 
       {/* Disclaimer */}
-      <p className="text-[10px] text-hype-text-muted text-center max-w-xs leading-relaxed px-4 mt-auto">
+      <p className="text-game-xs text-hype-text-muted text-center max-w-xs leading-relaxed px-4 mt-auto">
         Fictional Hype Points only. No real money. No crypto. No betting.
         Not connected to Reddit karma.
       </p>

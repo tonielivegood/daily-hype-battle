@@ -35,14 +35,14 @@ export const CandidateCard = ({
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-hype-text truncate">
+            <span className="font-bold text-game-lg text-hype-text truncate">
               {candidate.name}
             </span>
-            <span className="text-xs text-hype-purple font-medium">
+            <span className="text-game-sm text-hype-purple font-medium">
               {candidate.tag}
             </span>
           </div>
-          <p className="text-xs text-hype-text-dim mt-0.5 truncate">
+          <p className="text-game-sm text-hype-text-dim mt-0.5 truncate">
             {candidate.pitch}
           </p>
         </div>
@@ -58,7 +58,7 @@ export const CandidateCard = ({
             −
           </button>
           <span
-            className={`min-w-[36px] text-center text-sm font-bold rounded-lg py-1 transition-all duration-200 ${
+            className={`min-w-[40px] text-center text-game-lg font-black rounded-lg py-1 transition-all duration-200 ${
               allocation > 0
                 ? 'alloc-badge-active text-white'
                 : 'text-hype-text-muted'

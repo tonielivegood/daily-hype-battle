@@ -16,7 +16,7 @@ Copy deck for the official Reddit demo post, including title options, explainer 
 
 ## 📝 Post Body
 
-Hey r/daily_hype_battle! 
+ Hey r/daily_hype_battle! 
 
 Welcome to the **Daily Hype Battle**! 🎮
 
@@ -27,7 +27,7 @@ Today's contenders are active in the feed. Who will be crowned the community's H
 2. You have exactly **100 Hype Points** to spend. Distribute them across today's meme contenders (Frog Vibes 🐸, Dumpster Fire 🔥, Skull Moment 💀, Chaos Duck 🦆, Taco Tuesday 🌮).
 3. Once you hit exactly 100, click **"Ready to lock your hype 🔒"** to seal your selections.
 4. Open the **Meme Launchpad** to nominate tomorrow's contender or support community nominees.
-5. Hit **"Settle Demo Round (Judge Action)"** at the bottom to calculate results, alignment scores, streaks, and award badges!
+5. Hit **"Reveal Results 🏆"** under the Round Controls at the bottom to calculate results, alignment scores, streaks, and award badges!
 
 ---
 

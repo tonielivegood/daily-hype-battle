@@ -18,17 +18,20 @@ Daily Hype Battle is a playful, interactive, Reddit-native mini-game built on th
 1. **Enter the Arena**: Click the primary CTA button in your feed to expand the game canvas.
 2. **Spend Exactly 100 Hype Points**: Use the `+` / `-` buttons to allocate Hype Points across today's 5 meme contenders in steps of 5.
 3. **Lock Your Hype**: Click **"Ready to lock your hype 🔒"** once you have spent exactly 100 points.
-4. **Reveal Results (Demo Settle)**: Click **"Settle Demo Round (Judge Action)"** under Judge Panel to aggregate results and see who is crowned today's champion.
+4. **Reveal Results**: Click **"Reveal Results 🏆"** under the Round Controls block at the bottom to aggregate results and see who is crowned today's champion (this is a host control to simulate the daily reveal).
 5. **Nominate Tomorrow's Contender**: Go to the **Meme Launchpad** to nominate next candidates, edit your entries, and support community nominees.
 
 ---
 
 ## 🛠️ Core Gameplay & Retention Mechanics
+* **Daily Ritual Stage Indicator**: A persistent stage rail (`1. Pick` ➔ `2. Lock` ➔ `3. Reveal` ➔ `4. Launch Tomorrow`) highlights the player's progress through the daily loop.
+* **Smart Visitor Flow (Smart Settled State)**: If a visitor joins after a round is settled, they bypass Splash and go directly to Results with a participant status strip explaining they arrived after the reveal.
+* **Shareable Recap Helper**: A one-click button on the Results screen captures a text copy of the user's score and champion status to paste in Reddit comments, generating organic discussions.
 * **Locked Selections**: Picks are saved to Redis and persist after page refreshes or tab closures.
-* **Meme Standings Calculations**: Settle algorithm aggregates community allocations and applies multipliers like freshness, quality, chaos, and picker split, while penalizing maximum popularity (Crowd Drag).
+* **Meme Standings Calculations**: Settle algorithm aggregates community allocations and applies multipliers like freshness, quality, chaos, and picker split, while penalizing maximum popularity (Crowd Drag). Core scoring/settlement algorithms remain completely unchanged.
 * **Earned Badges & Streaks**: Tracks consecutive daily voting streaks and awards titles like *Meme Prophet* (voted for champion), *Contrarian Spark* (supported underdog top 2), and *First Lock* (first voter in the round).
 * **Player Leaderboard**: Ranked standings of the top alignment scores in the subreddit community.
-* **Curation Preview Terminal**: A judge dashboard to manually snap community nominees into tomorrow's round lineup preview.
+* **Round Controls**: Showcase round controls at the bottom of screens to simulate daily curation and results reveal.
 
 ---
 

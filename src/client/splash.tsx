@@ -9,6 +9,7 @@ import { ResultsScreen } from './components/ResultsScreen';
 import { LaunchpadScreen } from './components/LaunchpadScreen';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorState } from './components/ErrorState';
+import { DailyLoopRail } from './components/DailyLoopRail';
 
 export const Splash = () => {
   const {
@@ -42,11 +43,11 @@ export const Splash = () => {
     return <LaunchpadScreen onBack={() => setCurrentView('main')} />;
   }
 
-  if (settled && results && allocations) {
+  if (settled && results) {
     return (
       <ResultsScreen
         results={results}
-        allocations={allocations}
+        allocations={allocations || []}
         playerScore={playerScore}
         streak={streak}
         badges={badges}
@@ -93,46 +94,31 @@ export const Splash = () => {
 
         {/* Status Line */}
         <div className="animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-hype-green/10 border border-hype-green/30 text-hype-green shadow-[0_0_12px_rgba(34,197,94,0.1)]">
-            🟢 Today’s board is open
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-hype-green/10 border border-hype-green/30 text-hype-green shadow-[0_0_12px_rgba(34,197,94,0.1)]">
+            🟢 Today's board is open
           </span>
         </div>
 
         {/* Title */}
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-white uppercase bg-gradient-to-b from-white to-hype-text bg-clip-text">
+        <div className="space-y-1.5">
+          <h1 className="text-game-xl font-black tracking-tight text-white uppercase bg-gradient-to-b from-white to-hype-text bg-clip-text">
             Daily Hype Battle
           </h1>
-          <p className="text-hype-accent text-xs font-black mt-2 tracking-wide uppercase">
-            Pick today’s meme. Launch tomorrow’s contender.
+          <p className="text-hype-accent text-game-md font-black tracking-wide uppercase">
+            🏆 Pick today's meme. Launch tomorrow's contender.
           </p>
-          <p className="text-hype-text-dim text-[11px] mt-2.5 max-w-xs leading-relaxed">
-            Spend 100 fictional Hype Points on meme contenders, then see what the crowd crowns.
+          <p className="text-hype-text-dim text-game-md max-w-[320px] mx-auto leading-relaxed">
+            A Reddit-native daily prediction ritual. Allocate exactly 100 Hype Points, seal your picks, and back today's community champion!
           </p>
         </div>
 
-        {/* Three Steps Strip */}
-        <div className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-3 flex justify-between text-center mt-1">
-          <div className="flex-1">
-            <span className="block text-xs font-black text-hype-accent uppercase">1. Pick</span>
-            <span className="text-[9px] text-hype-text-dim">Contenders</span>
-          </div>
-          <div className="w-[1px] bg-white/10 my-0.5" />
-          <div className="flex-1">
-            <span className="block text-xs font-black text-hype-purple uppercase">2. Lock</span>
-            <span className="text-[9px] text-hype-text-dim">Picks</span>
-          </div>
-          <div className="w-[1px] bg-white/10 my-0.5" />
-          <div className="flex-1">
-            <span className="block text-xs font-black text-hype-pink uppercase">3. Reveal</span>
-            <span className="text-[9px] text-hype-text-dim">Results</span>
-          </div>
-        </div>
+        {/* Daily Loop Rail */}
+        <DailyLoopRail currentStage="pick" />
 
         {/* CTA Area */}
-        <div className="flex flex-col items-center w-full mt-2 gap-3">
+        <div className="flex flex-col items-center w-full mt-2 gap-3.5">
           <button
-            className="hype-cta w-full max-w-[280px] justify-center"
+            className="hype-cta w-full max-w-[280px] justify-center text-game-lg"
             onClick={(e) => requestExpandedMode(e.nativeEvent, 'game')}
           >
             Enter the Arena 🔥
@@ -140,16 +126,16 @@ export const Splash = () => {
           
           <button
             onClick={() => setCurrentView('launchpad')}
-            className="hype-cta-secondary w-full max-w-[280px]"
+            className="hype-cta-secondary w-full max-w-[280px] text-game-md"
           >
-            Nominate Tomorrow’s Meme 🚀
+            Nominate Tomorrow's Meme 🚀
           </button>
         </div>
       </div>
 
       {/* Footer disclaimer */}
       <footer className="absolute bottom-4 left-0 right-0 text-center px-6">
-        <p className="text-[9px] text-hype-text-muted leading-relaxed max-w-xs mx-auto">
+        <p className="text-game-xs text-hype-text-muted leading-relaxed max-w-xs mx-auto">
           Fictional Hype Points only. No real money. No crypto. No betting. Not connected to Reddit karma.
         </p>
       </footer>

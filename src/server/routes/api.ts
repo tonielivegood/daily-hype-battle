@@ -277,6 +277,15 @@ api.post('/hype/lock', async (c) => {
       );
     }
 
+    // Check if already settled
+    const settledStr = await redis.get(`hype:results:${postId}`);
+    if (settledStr) {
+      return c.json<HypeErrorResponse>(
+        { status: 'error', message: 'This round has already been settled and is closed.' },
+        403
+      );
+    }
+
     // Check if already locked
     const existing = await redis.get(hypeKey(postId, username));
     if (existing) {
