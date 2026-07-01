@@ -192,8 +192,8 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
         <h1 className="text-game-xl font-extrabold text-hype-text tracking-tight font-black uppercase">
           Meme Launchpad 🚀
         </h1>
-        <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[320px] mx-auto">
-          One nomination per player. Support the best ideas. Top picks can shape future boards.
+        <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[325px] mx-auto font-medium">
+          Nominate and support tomorrow’s contenders. One nomination per player. Top community picks can shape future boards.
         </p>
       </div>
 
@@ -388,8 +388,8 @@ export const LaunchpadScreen = ({ onBack }: LaunchpadScreenProps) => {
         </h3>
 
         {otherNominees.length === 0 ? (
-          <div className="text-center py-6 bg-black/35 rounded-xl border border-white/5 text-hype-text-dim text-game-md leading-relaxed px-4">
-            <p>No other community nominees yet. 🚀<br />Nominate a contender to help shape tomorrow's board.</p>
+          <div className="text-center py-6 bg-black/35 rounded-xl border border-white/5 text-hype-text-dim text-game-md leading-relaxed px-4 font-semibold">
+            <p>No nominees yet. Be the first to rally the crowd.</p>
           </div>
         ) : (
           otherNominees.map((sub, index) => {

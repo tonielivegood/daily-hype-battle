@@ -59,10 +59,10 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
       {/* Header */}
       <div className="text-center mb-4 animate-fade-in-up">
         <h1 className="text-game-xl font-black text-white uppercase tracking-tight">
-          Today's Hype Arena
+          Today’s Hype Arena
         </h1>
         <p className="text-hype-text-dim text-game-md mt-1.5 leading-relaxed max-w-[330px] mx-auto font-medium">
-          Pick today's meme. Spend exactly 100 Hype Points. Lock your hype.
+          Pick today’s meme. Spend exactly 100 Hype Points. Lock your hype.
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
               isReady ? 'text-hype-green text-game-lg' : 'text-white text-game-lg'
             }`}
           >
-            {totalUsed} / {TOTAL_HYPE_POINTS} pts
+            {totalUsed} / {TOTAL_HYPE_POINTS} Hype Points
           </span>
         </div>
         <div className="hype-progress-track">
@@ -87,7 +87,7 @@ export const HypeBoard = ({ onLock, locking, onOpenLaunchpad }: HypeBoardProps) 
           />
         </div>
         <p className="text-game-sm text-hype-text-dim mt-1.5 text-right font-medium">
-          {isReady ? "Ready to lock your hype 🔒" : `Spend ${TOTAL_HYPE_POINTS - totalUsed} more Hype Points`}
+          {isReady ? "Ready to lock your hype 🔒" : `Spend ${TOTAL_HYPE_POINTS - totalUsed} more Hype Points to lock.`}
         </p>
       </div>
 

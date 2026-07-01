@@ -190,7 +190,7 @@ export const ResultsScreen = ({
         )}
       </div>
 
-      {/* Badges Showcase Section */}
+      {/* Badges Section */}
       {badges.length > 0 && (
         <div className="hype-card px-4 py-3 bg-white/5 border-white/10 mb-5 animate-fade-in-up">
           <h3 className="text-game-sm font-black uppercase tracking-wider text-hype-text-dim text-center mb-2.5">
@@ -402,20 +402,20 @@ export const ResultsScreen = ({
         ) : (
           <div className="mt-3.5 py-4 px-3 bg-black/40 border border-white/5 rounded-xl text-center">
             <p className="text-game-md text-hype-text-dim leading-relaxed">
-              Tomorrow's board is still forming 🚀<br />Nominate a contender to help shape tomorrow's board.
+              Tomorrow’s board is still forming 🚀<br />Nominate a contender to help shape tomorrow's board.
             </p>
           </div>
         )}
 
         <p className="text-game-md text-hype-text-dim mt-4 max-w-[280px] mx-auto leading-relaxed">
-          <span className="text-white font-semibold">Next Action:</span> Nominate tomorrow's meme and support the best ideas!
+          <span className="text-white font-semibold">Next Action:</span> Nominate tomorrow’s meme and support the best ideas!
         </p>
 
         <button
           onClick={onOpenLaunchpad}
           className="hype-lock-btn text-game-lg !py-2.5 bg-gradient-to-r from-hype-accent to-hype-purple text-white mt-3 hover:opacity-90 animate-fade-in-up"
         >
-          Nominate Tomorrow's Meme 🚀
+          Nominate Tomorrow’s Meme 🚀
         </button>
       </div>
 

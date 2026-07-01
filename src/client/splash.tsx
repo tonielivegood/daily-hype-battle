@@ -105,10 +105,10 @@ export const Splash = () => {
             Daily Hype Battle
           </h1>
           <p className="text-hype-accent text-game-md font-black tracking-wide uppercase">
-            🏆 Pick today's meme. Launch tomorrow's contender.
+            🏆 Pick today’s meme. Launch tomorrow’s contender.
           </p>
           <p className="text-hype-text-dim text-game-md max-w-[320px] mx-auto leading-relaxed">
-            A Reddit-native daily prediction ritual. Allocate exactly 100 Hype Points, seal your picks, and back today's community champion!
+            Spend 100 fictional Hype Points across today’s meme contenders, then come back for the reveal.
           </p>
         </div>
 
@@ -128,7 +128,7 @@ export const Splash = () => {
             onClick={() => setCurrentView('launchpad')}
             className="hype-cta-secondary w-full max-w-[280px] text-game-md"
           >
-            Nominate Tomorrow's Meme 🚀
+            Nominate Tomorrow’s Meme 🚀
           </button>
         </div>
       </div>

@@ -99,3 +99,9 @@ This roadmap outlines the phased development of the Daily Hype Battle Reddit app
 *   [x] Streamline Hype Arena dynamic locked buttons and instructions.
 *   [x] Wrap Round Controls in a collapsed togglable accordion section near the bottom.
 *   [x] Perform a final cleanup to remove developer jargon (test, demo, judge) from the player canvas.
+
+### 🎯 Phase 8B: Fresh Demo Post + First 30 Seconds Polish (Completed)
+*   [x] Upgrade Splash screen typography hierarchy and copy.
+*   [x] Enhance Hype Arena progress labels and helpers for 30-second play clarity.
+*   [x] Complete text safety audits to secure disclaimers and clean candidate details.
+*   [x] Synchronize docs, post copies, scripts, and README walkthrough instructions.
